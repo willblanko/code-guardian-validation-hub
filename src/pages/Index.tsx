@@ -9,7 +9,14 @@ import FileUploader from '@/components/FileUploader';
 import TestConfigForm, { TestConfig } from '@/components/TestConfigForm';
 import ValidationProgress, { TestResult } from '@/components/ValidationProgress';
 import ResultsSummary from '@/components/ResultsSummary';
-import { runValidation, generateAndDownloadCertificate } from '@/lib/validationService';
+import { 
+  runValidation, 
+  generateAndDownloadPDF, 
+  generateAndDownloadCertificate,
+  generateReport,
+  generateCertificate,
+  downloadTextFile
+} from '@/lib/validationService';
 
 const Index = () => {
   const { toast } = useToast();
