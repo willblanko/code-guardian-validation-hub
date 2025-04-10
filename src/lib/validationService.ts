@@ -1,3 +1,4 @@
+
 import { TestConfig } from "@/components/TestConfigForm";
 import { TestResult, ValidationStatus } from "@/components/ValidationProgress";
 import { generatePdfReport, testDescriptions } from "@/utils/reportGenerator";
@@ -131,13 +132,14 @@ export const saveTestResults = async (
 ): Promise<string | null> => {
   try {
     // Fix: Using the proper format for Supabase insert - passing an array with a single object
+    // and correctly casting complex objects to Json type
     const { data, error } = await supabase
       .from('validation_tests')
       .insert([{
         file_name: fileName,
         file_size: fileSize,
-        test_config: config as Json,
-        results: results as Json
+        test_config: config as unknown as Json,
+        results: results as unknown as Json
       }])
       .select('id')
       .single();
