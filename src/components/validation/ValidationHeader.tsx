@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AlertCircle, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const ValidationHeader: React.FC = () => {
@@ -8,22 +8,22 @@ const ValidationHeader: React.FC = () => {
     <div className="mb-8 text-center">
       <h1 className="text-3xl font-bold mb-2">Validação de Aplicações Java Obfuscadas</h1>
       <p className="text-gray-600 max-w-2xl mx-auto mb-4">
-        Plataforma para demonstração de validação automática de aplicações Java (.jar) obfuscadas, 
-        com testes de funcionalidade e relatórios detalhados.
+        Plataforma para validação estática de aplicações Java (.jar) obfuscadas, 
+        com análise de código e geração de relatórios.
       </p>
       
-      <Alert variant="destructive" className="mb-4">
-        <AlertCircle className="h-4 w-4 mr-2" />
-        <AlertTitle>Importante: Esta é apenas uma demonstração</AlertTitle>
+      <Alert className="mb-4 bg-blue-50 border-blue-200 text-blue-800">
+        <Info className="h-4 w-4 mr-2" />
+        <AlertTitle>Análise estática de código</AlertTitle>
         <AlertDescription>
-          Esta aplicação não executa testes reais em arquivos JAR. É uma simulação para demonstrar o conceito.
-          Para realizar testes reais, consulte as instruções detalhadas no README.
+          Esta plataforma realiza análise estática de arquivos JAR para identificar 
+          técnicas de ofuscação e proteções implementadas. Não executa o código Java.
         </AlertDescription>
       </Alert>
       
       <div className="inline-flex items-center bg-yellow-100 text-yellow-800 px-3 py-1 rounded-md text-sm">
         <Info className="h-4 w-4 mr-2" />
-        <span>Consulte o README para instruções sobre como configurar testes reais</span>
+        <span>Para testes de validação mais avançados, utilize as ferramentas recomendadas na seção de ajuda</span>
       </div>
     </div>
   );

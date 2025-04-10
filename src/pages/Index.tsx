@@ -25,7 +25,6 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('upload');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [testConfig, setTestConfig] = useState<TestConfig | null>(null);
-  const [showResults, setShowResults] = useState(false);
   
   const {
     isValidating,
@@ -54,7 +53,6 @@ const Index = () => {
       setActiveTab('configure');
     } else if (activeTab === 'configure' && testConfig) {
       setActiveTab('validate');
-      setShowResults(false); // Redefine para mostrar a visualização de progresso
       startValidation(selectedFile, testConfig);
     }
   };
@@ -100,15 +98,6 @@ const Index = () => {
     setTestConfig(null);
     resetValidation();
     setActiveTab('upload');
-    setShowResults(false);
-  };
-  
-  const handleShowResults = () => {
-    setShowResults(true);
-  };
-
-  const handleToggleView = () => {
-    setShowResults(!showResults);
   };
 
   const canProceedFromUpload = !!selectedFile;
@@ -118,26 +107,24 @@ const Index = () => {
   const generateReport = (results: any[]): string => {
     const passedTests = results.filter(r => r.status === 'success').length;
     const totalTests = results.length;
-    const passRate = Math.round((passedTests / totalTests) * 100);
     
     const now = new Date();
     const dateStr = now.toLocaleDateString('pt-BR');
     const timeStr = now.toLocaleTimeString('pt-BR');
     
-    let report = `# Relatório de Validação de Obfuscação
+    let report = `# Relatório de Análise de Obfuscação
 Data: ${dateStr} - ${timeStr}
 
 ## Resumo
-- Total de testes: ${totalTests}
-- Testes aprovados: ${passedTests}
-- Taxa de aprovação: ${passRate}%
+- Total de verificações: ${totalTests}
+- Recomendações: ${results.filter(r => r.status === 'warning').length}
 
 ## Resultados detalhados\n`;
 
     results.forEach(result => {
       const statusText = 
-        result.status === 'success' ? '✅ APROVADO' : 
-        result.status === 'warning' ? '⚠️ ALERTA' : 
+        result.status === 'success' ? '✅ INFO' : 
+        result.status === 'warning' ? '⚠️ ATENÇÃO' : 
         result.status === 'failed' ? '❌ FALHA' : '';
         
       report += `\n### ${result.name}\n`;
@@ -145,15 +132,13 @@ Data: ${dateStr} - ${timeStr}
       report += `Detalhes: ${result.message}\n`;
     });
     
-    report += `\n## Conclusão\n`;
-    
-    if (passRate === 100) {
-      report += `A aplicação passou em todos os testes de validação. A obfuscação foi implementada corretamente e a funcionalidade está preservada.`;
-    } else if (passRate >= 80) {
-      report += `A aplicação passou na maioria dos testes de validação. Recomenda-se revisar os avisos antes da implantação em produção.`;
-    } else {
-      report += `A aplicação apresentou problemas em vários testes. Recomenda-se revisar a implementação da obfuscação.`;
-    }
+    report += `\n## Recomendações para análise avançada\n`;
+    report += `
+Para realizar uma análise completa da obfuscação, recomendamos a utilização de ferramentas especializadas como:
+- ProGuard, YGuard ou Allatori para obfuscação
+- CFR, Fernflower ou Procyon para análise de descompilação
+- BytecodeViewer para análise de bytecode
+- SonarQube para análise de qualidade e segurança`;
     
     return report;
   };
@@ -170,8 +155,7 @@ Data: ${dateStr} - ${timeStr}
               <CardTitle>Code Guardian - Validação Hub</CardTitle>
             </div>
             <CardDescription>
-              Demonstração de testes de validação em aplicações Java obfuscadas.
-              Para realizar testes reais, consulte as instruções no README.
+              Análise estática de aplicações Java obfuscadas e recomendações de ferramentas.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -187,8 +171,8 @@ Data: ${dateStr} - ${timeStr}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Carregue seu arquivo JAR</h3>
                   <p className="text-gray-600">
-                    Selecione o arquivo JAR (.jar) obfuscado para a demonstração de validação. 
-                    Nenhum teste real será executado neste ambiente web.
+                    Selecione o arquivo JAR (.jar) obfuscado para análise estática.
+                    Esta análise verificará o arquivo e fornecerá recomendações para análise avançada.
                   </p>
                   <FileUploader onFileSelected={handleFileSelected} />
                 </div>
@@ -196,50 +180,41 @@ Data: ${dateStr} - ${timeStr}
               
               <TabsContent value="configure" className="space-y-6">
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Configure os testes de validação</h3>
+                  <h3 className="text-lg font-medium">Configure a análise</h3>
                   <p className="text-gray-600">
-                    Personalize os testes que serão simulados. Esta é uma demonstração para visualizar
-                    como seria o processo de validação em um ambiente real.
+                    Selecione quais aspectos da obfuscação você deseja analisar.
+                    A análise fornecerá recomendações sobre como verificar estes aspectos com ferramentas especializadas.
                   </p>
                   <TestConfigForm onConfigChange={handleConfigChange} />
                 </div>
               </TabsContent>
               
               <TabsContent value="validate" className="space-y-6">
-                {validationComplete ? (
+                <div className="grid grid-cols-1 gap-6">
                   <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Progresso da Validação</h3>
-                        <ValidationProgress
-                          currentStep={currentStep}
-                          progress={progress}
-                          results={results}
-                          isComplete={validationComplete}
-                        />
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Resultados</h3>
-                        <ResultsSummary 
-                          results={results}
-                          config={testConfig!}
-                          fileName={selectedFile?.name || "arquivo.jar"}
-                          fileSize={selectedFile?.size || 0}
-                          onDownloadReport={handleDownloadReport}
-                          onDownloadCertificate={handleDownloadCertificate}
-                        />
-                      </div>
-                    </div>
+                    <h3 className="text-lg font-medium">Análise de Obfuscação</h3>
+                    <ValidationProgress
+                      currentStep={currentStep}
+                      progress={progress}
+                      results={results}
+                      isComplete={validationComplete}
+                    />
                   </div>
-                ) : (
-                  <ValidationProgress
-                    currentStep={currentStep}
-                    progress={progress}
-                    results={results}
-                    isComplete={validationComplete}
-                  />
-                )}
+                  
+                  {validationComplete && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Resultados e Recomendações</h3>
+                      <ResultsSummary 
+                        results={results}
+                        config={testConfig!}
+                        fileName={selectedFile?.name || "arquivo.jar"}
+                        fileSize={selectedFile?.size || 0}
+                        onDownloadReport={handleDownloadReport}
+                        onDownloadCertificate={handleDownloadCertificate}
+                      />
+                    </div>
+                  )}
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -264,14 +239,14 @@ Data: ${dateStr} - ${timeStr}
                             isValidating}
                   className="flex items-center"
                 >
-                  {activeTab === 'upload' ? 'Configurar Testes' : 'Iniciar Demonstração'}
+                  {activeTab === 'upload' ? 'Configurar Análise' : 'Iniciar Análise'}
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
               
               {validationComplete && (
                 <Button onClick={handleStartNewValidation}>
-                  Nova Validação
+                  Nova Análise
                 </Button>
               )}
             </div>

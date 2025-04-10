@@ -1,12 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent } from '@/components/ui/card';
-import { Settings, Shield, Code, Activity } from 'lucide-react';
+import { Shield, Info } from 'lucide-react';
 
 export interface TestConfig {
   obfuscationTests: {
@@ -39,14 +37,14 @@ const defaultConfig: TestConfig = {
     watermarkCheck: false,
   },
   functionalTests: {
-    enabled: true,
+    enabled: false,
     customTestCommand: "",
     timeoutSeconds: 60,
   },
   securityTests: {
-    enabled: true,
-    decompilationProtection: true,
-    antiDebug: true,
+    enabled: false,
+    decompilationProtection: false,
+    antiDebug: false,
   },
 };
 
@@ -76,12 +74,25 @@ const TestConfigForm: React.FC<TestConfigFormProps> = ({ onConfigChange }) => {
 
   return (
     <div className="space-y-6">
+      <div className="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-md mb-6">
+        <div className="flex items-start">
+          <Info className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
+          <div>
+            <p className="text-blue-800 text-sm">
+              Esta ferramenta realiza análise estática básica do arquivo JAR e fornece orientações sobre como 
+              verificar a obfuscação usando ferramentas especializadas. A execução real dos testes de obfuscação 
+              requer software local.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <Accordion type="single" collapsible defaultValue="obfuscation" className="w-full">
         <AccordionItem value="obfuscation">
           <AccordionTrigger className="flex items-center">
             <div className="flex items-center">
               <Shield className="mr-2 h-5 w-5 text-guardian-blue" />
-              <span>Testes de Obfuscação</span>
+              <span>Análise de Obfuscação</span>
             </div>
           </AccordionTrigger>
           <AccordionContent>
@@ -130,112 +141,6 @@ const TestConfigForm: React.FC<TestConfigFormProps> = ({ onConfigChange }) => {
                       }
                     />
                     <Label htmlFor="watermarkCheck">Verificar marca d'água digital</Label>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="functional">
-          <AccordionTrigger>
-            <div className="flex items-center">
-              <Code className="mr-2 h-5 w-5 text-guardian-green" />
-              <span>Testes Funcionais</span>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="functionalEnabled" 
-                      checked={config.functionalTests.enabled}
-                      onCheckedChange={(checked) => 
-                        handleConfigChange('functionalTests', 'enabled', Boolean(checked))
-                      }
-                    />
-                    <Label htmlFor="functionalEnabled">Habilitar testes funcionais</Label>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="customTestCommand">Comando de teste personalizado (opcional)</Label>
-                    <Input 
-                      id="customTestCommand" 
-                      placeholder="Ex: java -jar myapp.jar test" 
-                      value={config.functionalTests.customTestCommand}
-                      onChange={(e) => 
-                        handleConfigChange('functionalTests', 'customTestCommand', e.target.value)
-                      }
-                      disabled={!config.functionalTests.enabled}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="timeoutSeconds">Tempo limite de execução (segundos)</Label>
-                    <Input 
-                      id="timeoutSeconds" 
-                      type="number" 
-                      min="1" 
-                      max="300"
-                      value={config.functionalTests.timeoutSeconds}
-                      onChange={(e) => 
-                        handleConfigChange('functionalTests', 'timeoutSeconds', parseInt(e.target.value) || 60)
-                      }
-                      disabled={!config.functionalTests.enabled}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="security">
-          <AccordionTrigger>
-            <div className="flex items-center">
-              <Activity className="mr-2 h-5 w-5 text-guardian-teal" />
-              <span>Testes de Segurança</span>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="securityEnabled" 
-                      checked={config.securityTests.enabled}
-                      onCheckedChange={(checked) => 
-                        handleConfigChange('securityTests', 'enabled', Boolean(checked))
-                      }
-                    />
-                    <Label htmlFor="securityEnabled">Habilitar testes de segurança</Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="decompilationProtection" 
-                      checked={config.securityTests.decompilationProtection}
-                      onCheckedChange={(checked) => 
-                        handleConfigChange('securityTests', 'decompilationProtection', Boolean(checked))
-                      }
-                      disabled={!config.securityTests.enabled}
-                    />
-                    <Label htmlFor="decompilationProtection">Verificar proteção contra descompilação</Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="antiDebug" 
-                      checked={config.securityTests.antiDebug}
-                      onCheckedChange={(checked) => 
-                        handleConfigChange('securityTests', 'antiDebug', Boolean(checked))
-                      }
-                      disabled={!config.securityTests.enabled}
-                    />
-                    <Label htmlFor="antiDebug">Verificar proteções anti-debug</Label>
                   </div>
                 </div>
               </CardContent>

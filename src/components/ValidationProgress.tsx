@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { CheckCircle, XCircle, AlertCircle, Clock } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle, XCircle, AlertCircle, Clock, Info } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 export type ValidationStatus = 'waiting' | 'running' | 'success' | 'failed' | 'warning';
@@ -58,23 +58,23 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({
   };
 
   const steps = [
-    { label: 'Carregamento', description: 'Validando o arquivo JAR' },
-    { label: 'Análise', description: 'Verificando obfuscação' },
-    { label: 'Testes', description: 'Simulando testes funcionais' },
+    { label: 'Análise do arquivo', description: 'Verificando o arquivo JAR' },
+    { label: 'Análise estática', description: 'Verificando obfuscação' },
+    { label: 'Recomendações', description: 'Ferramentas para análise' },
     { label: 'Finalização', description: 'Gerando relatório' },
   ];
 
   return (
     <div className="space-y-8">
-      <Card className="border-dashed border-yellow-400 bg-yellow-50">
+      <Card className="border-dashed border-blue-400 bg-blue-50">
         <CardContent className="pt-4 pb-4">
           <div className="flex items-start">
-            <AlertCircle className="h-5 w-5 text-yellow-500 mr-2 mt-0.5" />
+            <Info className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
             <div>
-              <p className="text-sm text-yellow-800">
-                <strong>Ambiente de simulação:</strong> Esta é uma demonstração que simula a validação de aplicações Java. 
-                Em um ambiente real, os testes seriam executados diretamente na aplicação, incluindo 
-                verificação de licenças e proteções anti-debugging.
+              <p className="text-sm text-blue-800">
+                <strong>Análise estática:</strong> Esta aplicação realiza uma validação básica do arquivo JAR e fornece 
+                orientações sobre como realizar análises mais profundas usando ferramentas dedicadas para engenharia 
+                reversa e análise de obfuscação Java.
               </p>
             </div>
           </div>
@@ -84,7 +84,7 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({
       {/* Progress bar */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span>Progresso da simulação</span>
+          <span>Progresso da análise</span>
           <span>{Math.round(progress)}%</span>
         </div>
         <div className="progress-track">
@@ -120,7 +120,7 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({
 
       {/* Results */}
       <div className="space-y-4">
-        <h3 className="font-semibold text-lg">Resultados dos testes</h3>
+        <h3 className="font-semibold text-lg">Resultados da análise</h3>
         {results.length > 0 ? (
           <div className="space-y-2">
             {results.map((result) => (
@@ -141,15 +141,15 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({
                   result.status === 'success' ? 'success' : 
                   result.status === 'warning' ? 'warning' : 'destructive'
                 }>
-                  {result.status === 'success' ? 'Aprovado' : 
-                   result.status === 'warning' ? 'Alerta' : 'Falha'}
+                  {result.status === 'success' ? 'Info' : 
+                   result.status === 'warning' ? 'Atenção' : 'Falha'}
                 </Badge>
               </div>
             ))}
           </div>
         ) : (
           <div className="p-4 bg-gray-50 rounded-lg border text-center text-gray-500">
-            {currentStep > 0 ? "Aguardando resultados..." : "A simulação será iniciada em breve"}
+            {currentStep > 0 ? "Processando análise..." : "A análise será iniciada em breve"}
           </div>
         )}
       </div>

@@ -1,64 +1,37 @@
 
 # Code Guardian - Validação Hub para Aplicações Java Obfuscadas
 
-Uma plataforma web de demonstração para simulação de validação de aplicações Java (.jar) obfuscadas.
+Uma plataforma web para análise estática de aplicações Java (.jar) obfuscadas.
 
-## IMPORTANTE: Sobre a Natureza desta Aplicação
+## Sobre Esta Aplicação
 
-Esta aplicação é uma **demonstração** que simula o processo de validação de aplicações Java obfuscadas. 
-**Ela não executa testes reais em arquivos JAR**. Para realizar testes reais, você precisará configurar um ambiente de teste adequado conforme descrito na seção "Configurando um Ambiente de Teste Real" abaixo.
+Esta aplicação fornece uma validação básica de arquivos JAR e orientações sobre como realizar análises mais profundas de ofuscação usando ferramentas especializadas.
 
-## Funcionalidades Simuladas
+## Ferramentas Recomendadas para Ofuscação de Java
 
-- Upload de arquivos JAR obfuscados
-- Configuração personalizada de testes de validação
-- Verificação simulada de técnicas de obfuscação:
-  - Obfuscação de nomes de classes
-  - Criptografia de strings
-  - Obfuscação de fluxo de controle
-  - Verificação de marca d'água digital
-- Simulação de testes funcionais
-- Validação simulada de proteções de segurança:
-  - Resistência à descompilação
-  - Proteções anti-debug
-- Geração de relatórios detalhados em PDF e certificados de validação
-- Armazenamento de histórico de testes em banco de dados
+### Ferramentas Gratuitas
 
-## Como usar a Demonstração
+1. **ProGuard**
+   - Ferramenta gratuita e de código aberto para ofuscação, otimização e redução de código Java
+   - [Site Oficial do ProGuard](https://www.guardsquare.com/proguard)
+   - Exemplo de uso:
+     ```bash
+     java -jar proguard.jar @config.pro
+     ```
 
-1. **Upload do arquivo JAR**: Faça o upload do seu arquivo Java (.jar) obfuscado.
-2. **Configuração dos testes**: Selecione quais aspectos da obfuscação deseja simular a validação.
-3. **Execução da simulação**: Inicie o processo automatizado de validação simulada.
-4. **Análise dos resultados**: Verifique os resultados detalhados da simulação.
-5. **Exportação de evidências**: Baixe o relatório detalhado em PDF e o certificado de validação.
+2. **YGuard**
+   - Ferramenta gratuita de ofuscação para projetos Java
+   - Suporte para ofuscação de nomes e criptografia de strings
+   - [Site Oficial do YGuard](https://www.yworks.com/products/yguard)
+   - Integração com Maven e Ant
 
-## Configurando um Ambiente de Teste Real
+3. **Allatori (versão gratuita)**
+   - Versão comunitária com recursos básicos
+   - [Site Oficial do Allatori](https://www.allatori.com/)
 
-Para realizar testes reais em aplicações Java obfuscadas, recomendamos configurar um ambiente de teste dedicado com as seguintes ferramentas:
+## Ferramentas de Análise de Ofuscação
 
-### 1. SonarQube para Análise de Código
-
-O SonarQube é uma plataforma de análise contínua de qualidade de código que pode detectar problemas de segurança e qualidade.
-
-**Instalação e Configuração:**
-
-```bash
-# Instalar SonarQube via Docker
-docker run -d --name sonarqube -p 9000:9000 sonarqube:latest
-
-# Analisar um projeto Java
-./gradlew sonarqube \
-  -Dsonar.projectKey=meu-projeto \
-  -Dsonar.host.url=http://localhost:9000 \
-  -Dsonar.login=token-gerado-no-sonarqube
-```
-
-**Integração com Java:**
-1. Adicione o plugin SonarQube ao seu projeto Gradle ou Maven
-2. Configure as propriedades do SonarQube no arquivo build.gradle ou pom.xml
-3. Execute a análise e acesse os resultados através da interface web
-
-### 2. Ferramentas de Descompilação e Análise de Bytecode
+### 1. Descompiladores para Análise
 
 #### CFR (Class File Reader)
 Um descompilador Java de código aberto que processa arquivos .class e .jar.
@@ -97,7 +70,29 @@ Conjunto de ferramentas para engenharia reversa de aplicações Java.
 2. Execute: `java -jar BytecodeViewer.jar`
 3. Carregue seu arquivo JAR e utilize as múltiplas visualizações de bytecode e descompiladores
 
-### 3. Frameworks para Análise Avançada
+### 2. SonarQube para Análise de Qualidade e Segurança
+
+O SonarQube é uma plataforma de análise contínua de qualidade de código que pode detectar problemas de segurança e qualidade.
+
+**Instalação e Configuração:**
+
+```bash
+# Instalar SonarQube via Docker
+docker run -d --name sonarqube -p 9000:9000 sonarqube:latest
+
+# Analisar um projeto Java
+./gradlew sonarqube \
+  -Dsonar.projectKey=meu-projeto \
+  -Dsonar.host.url=http://localhost:9000 \
+  -Dsonar.login=token-gerado-no-sonarqube
+```
+
+**Integração com Java:**
+1. Adicione o plugin SonarQube ao seu projeto Gradle ou Maven
+2. Configure as propriedades do SonarQube no arquivo build.gradle ou pom.xml
+3. Execute a análise e acesse os resultados através da interface web
+
+### 3. Framework para Desofuscação de JavaScript em Java
 
 #### JStillery
 Framework para desofuscação de JavaScript embutido em aplicações Java.
@@ -112,21 +107,6 @@ npm install
 
 # Execute a interface web
 npm start
-```
-
-#### BOOM (Bytecode Obfuscation Open Metrics)
-Ferramenta para medir a eficácia da ofuscação de bytecode Java.
-
-```bash
-# Clone o repositório
-git clone https://github.com/pnfsoftware/boom
-cd boom
-
-# Construa com Gradle
-./gradlew build
-
-# Execute a análise
-java -jar build/libs/boom.jar analisar seu-arquivo.jar
 ```
 
 ### 4. Verificação de Proteções Anti-Debug

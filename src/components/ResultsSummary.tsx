@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ interface ResultsSummaryProps {
   onDownloadCertificate: () => void;
 }
 
-const ResultsSummary: React.FC<ResultsSummaryProps> = ({
+const ResultsSummaryCard: React.FC<ResultsSummaryProps> = ({
   results,
   config,
   fileName,
@@ -52,7 +53,7 @@ const ResultsSummary: React.FC<ResultsSummaryProps> = ({
     generateAndDownloadCertificate(results, fileName);
     toast({
       title: "Certificado PDF baixado",
-      description: "O certificado de validação em PDF foi baixado com sucesso.",
+      description: "O certificado de análise em PDF foi baixado com sucesso.",
     });
   };
 
@@ -61,7 +62,7 @@ const ResultsSummary: React.FC<ResultsSummaryProps> = ({
     if (testId) {
       toast({
         title: "Resultados salvos",
-        description: "Os resultados do teste foram salvos com sucesso no banco de dados.",
+        description: "Os resultados da análise foram salvos com sucesso no banco de dados.",
       });
     } else {
       toast({
@@ -86,53 +87,61 @@ const ResultsSummary: React.FC<ResultsSummaryProps> = ({
           ) : (
             <XCircle className="mr-2 h-6 w-6 text-red-600" />
           )}
-          Resultado da Validação
+          Resultado da Análise
         </CardTitle>
         <CardDescription>
           {overallStatus === 'success' 
-            ? "Todos os testes foram concluídos com sucesso!" 
+            ? "Análise estática concluída com sucesso" 
             : overallStatus === 'warning'
-            ? "Validação concluída com alguns avisos"
-            : "Alguns testes falharam durante a validação"
+            ? "Análise concluída com algumas recomendações"
+            : "Análise identificou problemas com o arquivo"
           }
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-gray-50 p-4 rounded-lg text-center">
             <div className="text-3xl font-bold">{totalTests}</div>
-            <div className="text-sm text-gray-500">Total de Testes</div>
+            <div className="text-sm text-gray-500">Total de Verificações</div>
           </div>
           <div className="bg-green-50 p-4 rounded-lg text-center">
             <div className="text-3xl font-bold text-green-600">{passedTests}</div>
-            <div className="text-sm text-gray-500">Testes Aprovados</div>
+            <div className="text-sm text-gray-500">Informações</div>
           </div>
-          <div className={`p-4 rounded-lg text-center ${failedTests > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
-            <div className={`text-3xl font-bold ${failedTests > 0 ? 'text-red-600' : ''}`}>
-              {failedTests}
+          <div className={`p-4 rounded-lg text-center ${warningTests > 0 ? 'bg-yellow-50' : 'bg-gray-50'}`}>
+            <div className={`text-3xl font-bold ${warningTests > 0 ? 'text-yellow-600' : ''}`}>
+              {warningTests}
             </div>
-            <div className="text-sm text-gray-500">Testes Falhados</div>
+            <div className="text-sm text-gray-500">Recomendações</div>
           </div>
         </div>
         
         <div className="mb-6">
           <div className="flex justify-between mb-2">
-            <span className="font-medium">Taxa de aprovação</span>
-            <span className="font-medium">{passRate}%</span>
+            <span className="font-medium">Progresso da análise</span>
+            <span className="font-medium">100%</span>
           </div>
           <div className="progress-track">
             <div 
-              className={`h-full rounded-full ${
-                passRate > 80 ? 'bg-green-500' : 
-                passRate > 50 ? 'bg-yellow-500' : 'bg-red-500'
-              }`} 
-              style={{ width: `${passRate}%` }}
+              className="h-full rounded-full bg-green-500" 
+              style={{ width: "100%" }}
             />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <h3 className="font-medium">Detalhes da validação</h3>
+        <div className="space-y-4">
+          <h3 className="font-medium">Ferramentas recomendadas para obfuscação</h3>
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-md text-blue-800">
+            <ul className="list-disc pl-5 space-y-2">
+              <li><strong>ProGuard</strong> - Ferramenta gratuita e de código aberto para obfuscação, otimização e redução de código Java.</li>
+              <li><strong>YGuard</strong> - Ferramenta de obfuscação gratuita para projetos Java com suporte a obfuscação de nomes e criptografia de strings.</li>
+              <li><strong>Allatori</strong> - Versão gratuita disponível com recursos básicos de obfuscação para projetos pequenos.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="space-y-2 mt-6">
+          <h3 className="font-medium">Detalhes da análise</h3>
           <div className="space-y-2">
             {results.filter(r => r.status === 'failed').map(result => (
               <div key={result.id} className="p-3 bg-red-50 border border-red-200 rounded-md">
@@ -151,6 +160,16 @@ const ResultsSummary: React.FC<ResultsSummaryProps> = ({
                   <span className="font-medium">{result.name}</span>
                 </div>
                 <p className="text-sm text-yellow-600 ml-6">{result.message}</p>
+              </div>
+            ))}
+
+            {results.filter(r => r.status === 'success').map(result => (
+              <div key={result.id} className="p-3 bg-green-50 border border-green-200 rounded-md">
+                <div className="flex items-center text-green-700">
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  <span className="font-medium">{result.name}</span>
+                </div>
+                <p className="text-sm text-green-600 ml-6">{result.message}</p>
               </div>
             ))}
           </div>
@@ -174,4 +193,4 @@ const ResultsSummary: React.FC<ResultsSummaryProps> = ({
   );
 };
 
-export default ResultsSummary;
+export default ResultsSummaryCard;

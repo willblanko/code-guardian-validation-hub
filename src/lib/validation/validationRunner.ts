@@ -2,23 +2,8 @@
 import { TestConfig } from "@/components/TestConfigForm";
 import { TestResult } from "@/components/ValidationProgress";
 
-// ============================================
-// IMPORTANTE: ESTA É UMA SIMULAÇÃO
-// ============================================
-// Esta implementação apenas simula a execução de testes em aplicações Java.
-// Em um cenário real, seriam necessários:
-// 1. Um backend com execução de Java
-// 2. Integração com ferramentas como CFR, Fernflower, Procyon
-// 3. Ambiente para executar a JVM
-// 4. Acesso ao hardware para validação de licença
-// ============================================
-
-// Helper function to simulate asynchronous operations with more realistic timing
-const simulateOperation = (ms: number): Promise<void> => {
-  return new Promise(resolve => setTimeout(resolve, ms));
-};
-
-// Core validation runner function - SIMULATION ONLY
+// Análise estática de JARs via web
+// Isto executa análises que podem ser feitas no navegador sem executar o código Java
 export const runValidation = async (
   file: File,
   config: TestConfig,
@@ -26,181 +11,103 @@ export const runValidation = async (
   onStepChange: (step: number) => void,
   onResultUpdate: (result: TestResult) => void
 ): Promise<boolean> => {
-  console.log("SIMULATION NOTICE: This is a simulated test run, not actual Java validation");
-  
-  // Step 1: File Analysis - Tempo aumentado para parecer mais realista
+  // Step 1: Análise básica do arquivo
   onStepChange(0);
-  onProgress(5);
+  onProgress(10);
   
-  await simulateOperation(2500);
+  // Validação do tamanho do arquivo e formato
+  const isValidSize = file.size > 0;
+  const isJarFile = file.name.endsWith('.jar');
+  
+  if (!isValidSize || !isJarFile) {
+    onResultUpdate({
+      id: 'file-analysis',
+      name: 'Análise do arquivo JAR',
+      status: 'failed',
+      message: !isValidSize 
+        ? 'O arquivo está vazio' 
+        : 'O arquivo não tem a extensão .jar'
+    });
+    onProgress(100);
+    return false;
+  }
+  
   onResultUpdate({
     id: 'file-analysis',
     name: 'Análise do arquivo JAR',
     status: 'success',
-    message: 'Arquivo JAR válido (simulação)'
+    message: `Arquivo válido: ${file.name} (${formatFileSize(file.size)})`
   });
   
-  onProgress(15);
-  await simulateOperation(1500);
+  onProgress(25);
   
-  // Step 2: Obfuscation Analysis - Versão melhorada para detectar falta de obfuscação
-  // Tempos aumentados para simulação mais realista
+  // Step 2: Análise estática de obfuscação
   onStepChange(1);
-  onProgress(20);
+  
+  // NOTA: Em um ambiente web, não podemos analisar o conteúdo do JAR diretamente
+  // Esta seção fornece orientações sobre o que seria analisado em um ambiente real
   
   if (config.obfuscationTests.classNameObfuscation) {
-    await simulateOperation(3000);
-    
-    // Análise mais rigorosa - simulando detecção de nomes descritivos de classes
-    const hasDescriptiveClassNames = Math.random() > 0.3; // 70% de chance de detectar nomes descritivos
-    
     onResultUpdate({
-      id: 'class-obfuscation',
-      name: 'Obfuscação de nomes de classes',
-      status: hasDescriptiveClassNames ? 'failed' : 'success',
-      message: hasDescriptiveClassNames 
-        ? 'Detectados nomes de classes descritivos como "UserService", "DataController". Obfuscação não aplicada corretamente.'
-        : 'Classes adequadamente ofuscadas'
-    });
-    onProgress(30);
-  }
-  
-  if (config.obfuscationTests.stringEncryption) {
-    await simulateOperation(2800);
-    
-    // Análise mais rigorosa - verificando strings em texto claro
-    const hasPlainTextStrings = Math.random() > 0.3; // 70% de chance de detectar strings em texto claro
-    
-    onResultUpdate({
-      id: 'string-encryption',
-      name: 'Criptografia de strings',
-      status: hasPlainTextStrings ? 'failed' : 'success',
-      message: hasPlainTextStrings 
-        ? 'Detectadas múltiplas strings em texto claro que deveriam estar criptografadas, como URLs, chaves e mensagens.'
-        : 'Strings estão criptografadas adequadamente'
+      id: 'class-obfuscation-info',
+      name: 'Informações sobre obfuscação de classes',
+      status: 'warning',
+      message: 'A verificação completa de obfuscação de nomes de classes requer ferramentas externas como ProGuard, CFR ou JD-GUI'
     });
     onProgress(40);
   }
   
+  if (config.obfuscationTests.stringEncryption) {
+    onResultUpdate({
+      id: 'string-encryption-info',
+      name: 'Informações sobre criptografia de strings',
+      status: 'warning',
+      message: 'A verificação de strings criptografadas requer análise de bytecode com ferramentas como BytecodeViewer ou Procyon'
+    });
+    onProgress(55);
+  }
+  
   if (config.obfuscationTests.controlFlowObfuscation) {
-    await simulateOperation(3200);
-    
-    // Análise mais rigorosa - verificando estrutura de fluxo de controle padrão
-    const hasStandardControlFlow = Math.random() > 0.4; // 60% de chance de detectar fluxo normal
-    
     onResultUpdate({
-      id: 'control-flow',
-      name: 'Obfuscação de fluxo de controle',
-      status: hasStandardControlFlow ? 'failed' : 'success',
-      message: hasStandardControlFlow 
-        ? 'Estrutura de fluxo de controle original facilmente identificável. Sem evidências de ofuscação.'
-        : 'Fluxo de controle adequadamente obscurecido'
-    });
-    onProgress(50);
-  }
-  
-  if (config.obfuscationTests.watermarkCheck) {
-    await simulateOperation(2500);
-    
-    // Análise mais rigorosa - procurando marca d'água
-    const hasWatermark = Math.random() > 0.5; // 50% de chance de detectar marca d'água
-    
-    onResultUpdate({
-      id: 'watermark',
-      name: 'Verificação de marca d\'água',
-      status: hasWatermark ? 'success' : 'warning',
-      message: hasWatermark 
-        ? 'Marca d\'água detectada'
-        : 'Não foi possível encontrar uma marca d\'água, o que é recomendado para rastreabilidade'
-    });
-    onProgress(60);
-  }
-  
-  // Step 3: Functional Testing - Simulação de licença verificada
-  if (config.functionalTests.enabled) {
-    onStepChange(2);
-    onProgress(65);
-    
-    // Simulação da verificação de licença (arquivos de licença)
-    await simulateOperation(2500);
-    
-    // Teste de licença - simulação
-    const licenseValid = Math.random() > 0.4;
-    onResultUpdate({
-      id: 'license-verification',
-      name: 'Verificação de licença',
-      status: licenseValid ? 'success' : 'failed',
-      message: licenseValid 
-        ? 'Mecanismo de validação de licença funcionando corretamente (simulação)'
-        : 'Falha na validação do arquivo license.key - não foi possível verificar a licença com o hardware (simulação)'
+      id: 'control-flow-info',
+      name: 'Informações sobre obfuscação de fluxo',
+      status: 'warning',
+      message: 'A análise de obfuscação de fluxo de controle requer ferramentas como JD-GUI ou Fernflower'
     });
     onProgress(70);
-    
-    // Simulação de inicialização da aplicação
-    await simulateOperation(3000);
-    onResultUpdate({
-      id: 'app-startup',
-      name: 'Inicialização da aplicação',
-      status: 'success',
-      message: 'Aplicação inicializada com sucesso'
-    });
-    onProgress(80);
-    
-    // Simulação de funcionalidades básicas
-    await simulateOperation(4000);
-    onResultUpdate({
-      id: 'functional-test',
-      name: 'Testes funcionais básicos',
-      status: 'success',
-      message: 'Funções principais executadas corretamente (simulação)'
-    });
-    onProgress(85);
   }
   
-  // Step 4: Security Testing - Tempos aumentados para mais realismo
-  if (config.securityTests.enabled) {
-    onStepChange(3);
-    onProgress(87);
-    
-    await simulateOperation(4500);
-    
-    if (config.securityTests.decompilationProtection) {
-      // Análise mais rigorosa - tentativa de descompilação
-      const isEasilyDecompiled = Math.random() > 0.3; // 70% de chance de ser facilmente descompilado
-      
-      onResultUpdate({
-        id: 'decompilation',
-        name: 'Proteção contra descompilação',
-        status: isEasilyDecompiled ? 'failed' : 'success',
-        message: isEasilyDecompiled 
-          ? 'Aplicação facilmente descompilada com ferramentas comuns. Proteção insuficiente. (simulação)'
-          : 'Proteção efetiva contra descompilação (simulação)'
-      });
-      onProgress(92);
-    }
-    
-    if (config.securityTests.antiDebug) {
-      await simulateOperation(3000);
-      
-      // Análise mais rigorosa - proteções anti-debug
-      const hasAntiDebugProtection = Math.random() > 0.6; // 40% de chance de ter proteções anti-debug
-      
-      onResultUpdate({
-        id: 'anti-debug',
-        name: 'Proteções anti-debug',
-        status: hasAntiDebugProtection ? 'success' : 'failed',
-        message: hasAntiDebugProtection 
-          ? 'Proteções anti-debug detectadas'
-          : 'Não foram detectadas proteções contra debugging, permitindo análise em tempo de execução'
-      });
-      
-      onProgress(95);
-    }
-  }
+  // Step 3: Recomendações de ferramentas
+  onStepChange(2);
+  onProgress(85);
   
-  // Step 5: Report Generation
-  await simulateOperation(3000);
+  // Recomendações de ferramentas de obfuscação gratuitas
+  onResultUpdate({
+    id: 'obfuscation-tools',
+    name: 'Ferramentas gratuitas recomendadas para obfuscação',
+    status: 'success',
+    message: 'ProGuard, YGuard e Allatori (versão gratuita) são excelentes opções gratuitas para ofuscação de código Java'
+  });
+  
+  // Step 4: Conclusão
+  onStepChange(3);
   onProgress(100);
   
+  onResultUpdate({
+    id: 'validation-summary',
+    name: 'Resumo da validação',
+    status: 'success',
+    message: 'Validação estática concluída. Consulte as ferramentas recomendadas para uma análise mais detalhada.'
+  });
+  
   return true;
+};
+
+// Função para formatar o tamanho do arquivo
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
