@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -52,6 +52,11 @@ const defaultConfig: TestConfig = {
 
 const TestConfigForm: React.FC<TestConfigFormProps> = ({ onConfigChange }) => {
   const [config, setConfig] = useState<TestConfig>(defaultConfig);
+
+  // Initialize with default config on mount
+  useEffect(() => {
+    onConfigChange(defaultConfig);
+  }, [onConfigChange]);
 
   const handleConfigChange = <T extends keyof TestConfig, K extends keyof TestConfig[T]>(
     section: T,

@@ -1,6 +1,7 @@
-
 import { TestConfig } from "@/components/TestConfigForm";
 import { TestResult, ValidationStatus } from "@/components/ValidationProgress";
+import { generatePdfReport, testDescriptions } from "@/utils/reportGenerator";
+import { supabase } from "@/integrations/supabase/client";
 
 // Simulação de resultados para demonstração
 export const runValidation = async (
@@ -121,6 +122,36 @@ export const runValidation = async (
   return true;
 };
 
+export const saveTestResults = async (
+  fileName: string,
+  fileSize: number,
+  config: TestConfig,
+  results: TestResult[]
+): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('validation_tests')
+      .insert({
+        file_name: fileName,
+        file_size: fileSize,
+        test_config: config,
+        results: results
+      })
+      .select('id')
+      .single();
+    
+    if (error) {
+      console.error("Error saving test results:", error);
+      return null;
+    }
+    
+    return data.id;
+  } catch (error) {
+    console.error("Error saving test results:", error);
+    return null;
+  }
+};
+
 export const generateReport = (results: TestResult[]): string => {
   const passedTests = results.filter(r => r.status === 'success').length;
   const totalTests = results.length;
@@ -212,6 +243,24 @@ ID do Certificado: CG-${Math.random().toString(36).substring(2, 10).toUpperCase(
 `;
 
   return certificate;
+};
+
+// Helper function to generate and download PDF
+export const generateAndDownloadPDF = (
+  results: TestResult[], 
+  config: TestConfig, 
+  fileName: string,
+  fileSize: number
+): void => {
+  const pdfBlob = generatePdfReport(results, config, fileName, fileSize);
+  const url = URL.createObjectURL(pdfBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `relatorio-validacao-${fileName.replace('.jar', '')}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 };
 
 // Helper function to simulate asynchronous operations

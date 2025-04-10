@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -184,6 +185,9 @@ const Index = () => {
                 {validationComplete ? (
                   <ResultsSummary 
                     results={results}
+                    config={testConfig!}
+                    fileName={selectedFile?.name || "arquivo.jar"}
+                    fileSize={selectedFile?.size || 0}
                     onDownloadReport={handleDownloadReport}
                     onDownloadCertificate={handleDownloadCertificate}
                   />

@@ -3,19 +3,29 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TestResult } from './ValidationProgress';
-import { CheckCircle, XCircle, AlertCircle, Download, FileText } from 'lucide-react';
+import { TestConfig } from './TestConfigForm';
+import { CheckCircle, XCircle, AlertCircle, Download, FileText, Save } from 'lucide-react';
+import { generateAndDownloadPDF, saveTestResults } from '@/lib/validationService';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ResultsSummaryProps {
   results: TestResult[];
+  config: TestConfig;
+  fileName: string;
+  fileSize: number;
   onDownloadReport: () => void;
   onDownloadCertificate: () => void;
 }
 
 const ResultsSummary: React.FC<ResultsSummaryProps> = ({
   results,
+  config,
+  fileName,
+  fileSize,
   onDownloadReport,
   onDownloadCertificate
 }) => {
+  const { toast } = useToast();
   const totalTests = results.length;
   const passedTests = results.filter(r => r.status === 'success').length;
   const failedTests = results.filter(r => r.status === 'failed').length;
@@ -30,6 +40,30 @@ const ResultsSummary: React.FC<ResultsSummaryProps> = ({
   };
   
   const overallStatus = getOverallStatus();
+
+  const handleDownloadPdfReport = () => {
+    generateAndDownloadPDF(results, config, fileName, fileSize);
+    toast({
+      title: "Relatório PDF baixado",
+      description: "O relatório detalhado em PDF foi baixado com sucesso.",
+    });
+  };
+
+  const handleSaveResults = async () => {
+    const testId = await saveTestResults(fileName, fileSize, config, results);
+    if (testId) {
+      toast({
+        title: "Resultados salvos",
+        description: "Os resultados do teste foram salvos com sucesso no banco de dados.",
+      });
+    } else {
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar os resultados. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
   
   return (
     <Card className="w-full">
@@ -116,13 +150,17 @@ const ResultsSummary: React.FC<ResultsSummaryProps> = ({
         </div>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
-        <Button className="w-full sm:w-auto" onClick={onDownloadReport}>
+        <Button className="w-full sm:w-auto" onClick={handleDownloadPdfReport}>
           <FileText className="mr-2 h-4 w-4" />
-          Baixar Relatório Completo
+          Baixar Relatório PDF
         </Button>
         <Button variant="outline" className="w-full sm:w-auto" onClick={onDownloadCertificate}>
           <Download className="mr-2 h-4 w-4" />
           Baixar Certificado de Validação
+        </Button>
+        <Button variant="secondary" className="w-full sm:w-auto" onClick={handleSaveResults}>
+          <Save className="mr-2 h-4 w-4" />
+          Salvar Resultados
         </Button>
       </CardFooter>
     </Card>
