@@ -1,3 +1,4 @@
+
 import { TestConfig } from "@/components/TestConfigForm";
 import { TestResult, ValidationStatus } from "@/components/ValidationProgress";
 import { generatePdfReport, testDescriptions } from "@/utils/reportGenerator";
@@ -129,6 +130,7 @@ export const saveTestResults = async (
   results: TestResult[]
 ): Promise<string | null> => {
   try {
+    // Fix: Using the proper typings for Supabase table access
     const { data, error } = await supabase
       .from('validation_tests')
       .insert({
@@ -145,7 +147,8 @@ export const saveTestResults = async (
       return null;
     }
     
-    return data.id;
+    // Fix: Handle potential null data with nullish coalescing operator
+    return data?.id || null;
   } catch (error) {
     console.error("Error saving test results:", error);
     return null;

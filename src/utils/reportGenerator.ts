@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { TestResult } from '@/components/ValidationProgress';
@@ -90,7 +89,7 @@ export const generatePdfReport = (results: TestResult[], config: any, fileName: 
     head: [['Teste', 'Status', 'Resultado', 'Explicação']],
     body: tableData,
     theme: 'striped',
-    headStyles: { fillColor: [31, 78, 121], textColor: [255] },
+    headStyles: { fillColor: [31, 78, 121], textColor: [255, 255, 255] },
     styles: { fontSize: 9 },
     columnStyles: { 
       0: { cellWidth: 40 },
