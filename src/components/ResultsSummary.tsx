@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TestResult } from './ValidationProgress';
 import { TestConfig } from './TestConfigForm';
 import { CheckCircle, XCircle, AlertCircle, Download, FileText, Save } from 'lucide-react';
-import { generateAndDownloadPDF, saveTestResults } from '@/lib/validationService';
+import { generateAndDownloadPDF, generateAndDownloadCertificate, saveTestResults } from '@/lib/validationService';
 import { useToast } from '@/components/ui/use-toast';
 
 interface ResultsSummaryProps {
@@ -46,6 +45,14 @@ const ResultsSummary: React.FC<ResultsSummaryProps> = ({
     toast({
       title: "Relatório PDF baixado",
       description: "O relatório detalhado em PDF foi baixado com sucesso.",
+    });
+  };
+
+  const handleDownloadPdfCertificate = () => {
+    generateAndDownloadCertificate(results, fileName);
+    toast({
+      title: "Certificado PDF baixado",
+      description: "O certificado de validação em PDF foi baixado com sucesso.",
     });
   };
 
@@ -154,9 +161,9 @@ const ResultsSummary: React.FC<ResultsSummaryProps> = ({
           <FileText className="mr-2 h-4 w-4" />
           Baixar Relatório PDF
         </Button>
-        <Button variant="outline" className="w-full sm:w-auto" onClick={onDownloadCertificate}>
+        <Button variant="outline" className="w-full sm:w-auto" onClick={handleDownloadPdfCertificate}>
           <Download className="mr-2 h-4 w-4" />
-          Baixar Certificado de Validação
+          Baixar Certificado PDF
         </Button>
         <Button variant="secondary" className="w-full sm:w-auto" onClick={handleSaveResults}>
           <Save className="mr-2 h-4 w-4" />

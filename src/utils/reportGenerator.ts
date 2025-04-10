@@ -165,7 +165,127 @@ export const generatePdfReport = (results: TestResult[], config: any, fileName: 
   return doc.output('blob');
 };
 
-// Helper functions
+export const generatePdfCertificate = (results: TestResult[]): Blob => {
+  const doc = new jsPDF();
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pt-BR');
+  const certId = `CG-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+  
+  const passedTests = results.filter(r => r.status === 'success').length;
+  const totalTests = results.length;
+  const passRate = Math.round((passedTests / totalTests) * 100);
+  
+  // Cabeçalho
+  doc.setFillColor(31, 78, 121);
+  doc.rect(0, 0, 210, 40, 'F');
+  
+  doc.setTextColor(255);
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CERTIFICADO DE VALIDAÇÃO', 105, 25, { align: 'center' });
+  
+  // Logo ou Emblema
+  doc.setFillColor(230, 230, 230);
+  doc.circle(105, 80, 25, 'F');
+  doc.setTextColor(31, 78, 121);
+  doc.setFontSize(42);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CG', 105, 80 + 15, { align: 'center' });
+  
+  // Título
+  doc.setTextColor(31, 78, 121);
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CODE GUARDIAN', 105, 120, { align: 'center' });
+  
+  // Texto do certificado
+  doc.setTextColor(0);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  
+  const certText = `Este documento certifica que a aplicação Java submetida
+à análise foi validada pelo sistema Code Guardian e obteve
+os seguintes resultados:`;
+  
+  doc.text(certText, 105, 140, { align: 'center' });
+  
+  // Detalhes
+  doc.setFontSize(12);
+  const detailsY = 165;
+  
+  doc.setFont('helvetica', 'bold');
+  doc.text('Data da validação:', 55, detailsY);
+  doc.text('Taxa de aprovação:', 55, detailsY + 10);
+  doc.text('Total de testes realizados:', 55, detailsY + 20);
+  doc.text('Total de testes aprovados:', 55, detailsY + 30);
+  
+  doc.setFont('helvetica', 'normal');
+  doc.text(dateStr, 155, detailsY, { align: 'right' });
+  doc.text(`${passRate}%`, 155, detailsY + 10, { align: 'right' });
+  doc.text(`${totalTests}`, 155, detailsY + 20, { align: 'right' });
+  doc.text(`${passedTests}`, 155, detailsY + 30, { align: 'right' });
+  
+  // Resultado
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('RESULTADO:', 105, detailsY + 50, { align: 'center' });
+  
+  doc.setFontSize(16);
+  if (passRate === 100) {
+    doc.setTextColor(0, 128, 0); // Verde escuro
+    doc.text('APROVADO INTEGRALMENTE', 105, detailsY + 60, { align: 'center' });
+  } else if (passRate >= 80) {
+    doc.setTextColor(180, 130, 0); // Amarelo escuro
+    doc.text('APROVADO COM RESSALVAS', 105, detailsY + 60, { align: 'center' });
+  } else {
+    doc.setTextColor(180, 0, 0); // Vermelho escuro
+    doc.text('NECESSITA REVISÃO', 105, detailsY + 60, { align: 'center' });
+  }
+  
+  // Descrição do resultado
+  doc.setFontSize(11);
+  doc.setTextColor(0);
+  doc.setFont('helvetica', 'normal');
+  
+  let resultText = '';
+  if (passRate === 100) {
+    resultText = `A aplicação implementa técnicas de obfuscação eficazes e mantém sua funcionalidade
+conforme esperado. Este certificado é válido como comprovação de que a aplicação
+está protegida contra engenharia reversa e cumpre as boas práticas de mercado.`;
+  } else if (passRate >= 80) {
+    resultText = `A aplicação implementa a maioria das técnicas de obfuscação esperadas e mantém
+sua funcionalidade. Recomenda-se atenção aos pontos de atenção destacados no
+relatório detalhado antes da implantação em ambiente de produção.`;
+  } else {
+    resultText = `A aplicação apresenta deficiências significativas na implementação das técnicas
+de obfuscação. Recomenda-se a revisão dos pontos indicados no relatório detalhado
+antes de prosseguir com a implantação.`;
+  }
+  
+  doc.text(resultText, 105, detailsY + 75, { align: 'center' });
+  
+  // Rodapé
+  // Linha de assinatura
+  doc.setDrawColor(100);
+  doc.line(65, 240, 145, 240);
+  doc.setFontSize(10);
+  doc.text('Sistema de Validação Code Guardian', 105, 250, { align: 'center' });
+  
+  // ID do certificado
+  doc.setFontSize(8);
+  doc.setTextColor(100);
+  doc.text(`ID do Certificado: ${certId}`, 105, 260, { align: 'center' });
+  doc.text(`Válido por 90 dias a partir de ${dateStr}`, 105, 265, { align: 'center' });
+  
+  // Marca d'água
+  doc.setTextColor(240, 240, 240);
+  doc.setFontSize(60);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CODE GUARDIAN', 105, 160, { align: 'center', angle: 45 });
+  
+  return doc.output('blob');
+};
+
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;

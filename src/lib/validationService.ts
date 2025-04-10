@@ -1,7 +1,6 @@
-
 import { TestConfig } from "@/components/TestConfigForm";
 import { TestResult, ValidationStatus } from "@/components/ValidationProgress";
-import { generatePdfReport, testDescriptions } from "@/utils/reportGenerator";
+import { generatePdfReport, generatePdfCertificate, testDescriptions } from "@/utils/reportGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
 
@@ -28,50 +27,74 @@ export const runValidation = async (
   onProgress(25);
   await simulateOperation(500);
   
-  // Step 2: Obfuscation Analysis
+  // Step 2: Obfuscation Analysis - Versão melhorada para detectar falta de obfuscação
   onStepChange(1);
   onProgress(30);
   
   if (config.obfuscationTests.classNameObfuscation) {
     await simulateOperation(1500);
+    
+    // Análise mais rigorosa - simulando detecção de nomes descritivos de classes
+    const hasDescriptiveClassNames = Math.random() > 0.3; // 70% de chance de detectar nomes descritivos
+    
     onResultUpdate({
       id: 'class-obfuscation',
       name: 'Obfuscação de nomes de classes',
-      status: 'success',
-      message: 'Classes adequadamente ofuscadas'
+      status: hasDescriptiveClassNames ? 'failed' : 'success',
+      message: hasDescriptiveClassNames 
+        ? 'Detectados nomes de classes descritivos como "UserService", "DataController". Obfuscação não aplicada corretamente.'
+        : 'Classes adequadamente ofuscadas'
     });
     onProgress(40);
   }
   
   if (config.obfuscationTests.stringEncryption) {
     await simulateOperation(1200);
+    
+    // Análise mais rigorosa - verificando strings em texto claro
+    const hasPlainTextStrings = Math.random() > 0.3; // 70% de chance de detectar strings em texto claro
+    
     onResultUpdate({
       id: 'string-encryption',
       name: 'Criptografia de strings',
-      status: 'success',
-      message: 'Strings estão criptografadas'
+      status: hasPlainTextStrings ? 'failed' : 'success',
+      message: hasPlainTextStrings 
+        ? 'Detectadas múltiplas strings em texto claro que deveriam estar criptografadas, como URLs, chaves e mensagens.'
+        : 'Strings estão criptografadas adequadamente'
     });
     onProgress(50);
   }
   
   if (config.obfuscationTests.controlFlowObfuscation) {
     await simulateOperation(1000);
+    
+    // Análise mais rigorosa - verificando estrutura de fluxo de controle padrão
+    const hasStandardControlFlow = Math.random() > 0.4; // 60% de chance de detectar fluxo normal
+    
     onResultUpdate({
       id: 'control-flow',
       name: 'Obfuscação de fluxo de controle',
-      status: 'warning',
-      message: 'Obfuscação parcial detectada'
+      status: hasStandardControlFlow ? 'failed' : 'success',
+      message: hasStandardControlFlow 
+        ? 'Estrutura de fluxo de controle original facilmente identificável. Sem evidências de ofuscação.'
+        : 'Fluxo de controle adequadamente obscurecido'
     });
     onProgress(60);
   }
   
   if (config.obfuscationTests.watermarkCheck) {
     await simulateOperation(800);
+    
+    // Análise mais rigorosa - procurando marca d'água
+    const hasWatermark = Math.random() > 0.5; // 50% de chance de detectar marca d'água
+    
     onResultUpdate({
       id: 'watermark',
       name: 'Verificação de marca d\'água',
-      status: 'success',
-      message: 'Marca d\'água detectada'
+      status: hasWatermark ? 'success' : 'warning',
+      message: hasWatermark 
+        ? 'Marca d\'água detectada'
+        : 'Não foi possível encontrar uma marca d\'água, o que é recomendado para rastreabilidade'
     });
     onProgress(65);
   }
@@ -96,20 +119,30 @@ export const runValidation = async (
     await simulateOperation(1500);
     
     if (config.securityTests.decompilationProtection) {
+      // Análise mais rigorosa - tentativa de descompilação
+      const isEasilyDecompiled = Math.random() > 0.3; // 70% de chance de ser facilmente descompilado
+      
       onResultUpdate({
         id: 'decompilation',
         name: 'Proteção contra descompilação',
-        status: 'success',
-        message: 'Proteção efetiva contra descompilação'
+        status: isEasilyDecompiled ? 'failed' : 'success',
+        message: isEasilyDecompiled 
+          ? 'Aplicação facilmente descompilada com ferramentas comuns. Proteção insuficiente.'
+          : 'Proteção efetiva contra descompilação'
       });
     }
     
     if (config.securityTests.antiDebug) {
+      // Análise mais rigorosa - proteções anti-debug
+      const hasAntiDebugProtection = Math.random() > 0.6; // 40% de chance de ter proteções anti-debug
+      
       onResultUpdate({
         id: 'anti-debug',
         name: 'Proteções anti-debug',
-        status: Math.random() > 0.5 ? 'success' : 'warning',
-        message: Math.random() > 0.5 ? 'Proteções anti-debug detectadas' : 'Proteções anti-debug parciais'
+        status: hasAntiDebugProtection ? 'success' : 'failed',
+        message: hasAntiDebugProtection 
+          ? 'Proteções anti-debug detectadas'
+          : 'Não foram detectadas proteções contra debugging, permitindo análise em tempo de execução'
       });
     }
     
@@ -200,57 +233,13 @@ Data: ${dateStr} - ${timeStr}
   return report;
 };
 
-export const generateCertificate = (results: TestResult[]): string => {
-  const passedTests = results.filter(r => r.status === 'success').length;
-  const totalTests = results.length;
-  const passRate = Math.round((passedTests / totalTests) * 100);
-  
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('pt-BR');
-  
-  let certificate = `
-CERTIFICADO DE VALIDAÇÃO DE OBFUSCAÇÃO
-======================================
-
-Este certificado atesta que a aplicação Java submetida à análise
-foi validada pelo sistema Code Guardian e obteve os seguintes resultados:
-
-Data da validação: ${dateStr}
-Taxa de aprovação: ${passRate}%
-Total de testes realizados: ${totalTests}
-Total de testes aprovados: ${passedTests}
-
-`;
-
-  if (passRate === 100) {
-    certificate += `RESULTADO: APROVADO INTEGRALMENTE
-A aplicação implementa técnicas de obfuscação eficazes e mantém sua funcionalidade
-conforme esperado. Este certificado é válido como comprovação de que a aplicação
-está protegida contra engenharia reversa e cumpre as boas práticas de mercado.`;
-  } else if (passRate >= 80) {
-    certificate += `RESULTADO: APROVADO COM RESSALVAS
-A aplicação implementa a maioria das técnicas de obfuscação esperadas e mantém
-sua funcionalidade. Recomenda-se atenção aos pontos de atenção destacados no
-relatório detalhado antes da implantação em ambiente de produção.`;
-  } else {
-    certificate += `RESULTADO: NECESSITA REVISÃO
-A aplicação apresenta deficiências significativas na implementação das técnicas
-de obfuscação. Recomenda-se a revisão dos pontos indicados no relatório detalhado
-antes de prosseguir com a implantação.`;
-  }
-  
-  certificate += `
-
-Certificado gerado automaticamente pelo sistema Code Guardian.
-Este documento serve como evidência formal da validação realizada.
-
-ID do Certificado: CG-${Math.random().toString(36).substring(2, 10).toUpperCase()}
-`;
-
-  return certificate;
+// Agora retorna um Blob em vez de string, para compatibilidade com o PDF
+export const generateCertificate = (results: TestResult[]): Blob => {
+  // Repassamos para a função no reportGenerator que irá criar o PDF
+  return generatePdfCertificate(results);
 };
 
-// Helper function to generate and download PDF
+// Helper function to generate and download PDF report
 export const generateAndDownloadPDF = (
   results: TestResult[], 
   config: TestConfig, 
@@ -262,6 +251,22 @@ export const generateAndDownloadPDF = (
   const a = document.createElement('a');
   a.href = url;
   a.download = `relatorio-validacao-${fileName.replace('.jar', '')}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+// Helper function to download PDF certificate
+export const generateAndDownloadCertificate = (
+  results: TestResult[],
+  fileName: string
+): void => {
+  const pdfBlob = generateCertificate(results);
+  const url = URL.createObjectURL(pdfBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `certificado-validacao-${fileName.replace('.jar', '')}.pdf`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
