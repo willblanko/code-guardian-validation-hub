@@ -54,6 +54,7 @@ const Index = () => {
       setActiveTab('configure');
     } else if (activeTab === 'configure' && testConfig) {
       setActiveTab('validate');
+      setShowResults(false); // Redefine para mostrar a visualização de progresso
       startValidation(selectedFile, testConfig);
     }
   };
@@ -169,7 +170,8 @@ Data: ${dateStr} - ${timeStr}
               <CardTitle>Code Guardian - Validação Hub</CardTitle>
             </div>
             <CardDescription>
-              Simulação de testes de validação em aplicações Java obfuscadas para demonstrar o processo de verificação.
+              Demonstração de testes de validação em aplicações Java obfuscadas.
+              Para realizar testes reais, consulte as instruções no README.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -185,8 +187,8 @@ Data: ${dateStr} - ${timeStr}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Carregue seu arquivo JAR</h3>
                   <p className="text-gray-600">
-                    Selecione o arquivo JAR (.jar) obfuscado que deseja validar. 
-                    O arquivo será analisado para verificar a eficácia da obfuscação e realizar testes de funcionalidade.
+                    Selecione o arquivo JAR (.jar) obfuscado para a demonstração de validação. 
+                    Nenhum teste real será executado neste ambiente web.
                   </p>
                   <FileUploader onFileSelected={handleFileSelected} />
                 </div>
@@ -196,8 +198,8 @@ Data: ${dateStr} - ${timeStr}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Configure os testes de validação</h3>
                   <p className="text-gray-600">
-                    Personalize os testes que serão simulados na sua aplicação. 
-                    Você pode selecionar diferentes tipos de verificações de obfuscação e testes funcionais.
+                    Personalize os testes que serão simulados. Esta é uma demonstração para visualizar
+                    como seria o processo de validação em um ambiente real.
                   </p>
                   <TestConfigForm onConfigChange={handleConfigChange} />
                 </div>
@@ -205,14 +207,20 @@ Data: ${dateStr} - ${timeStr}
               
               <TabsContent value="validate" className="space-y-6">
                 {validationComplete ? (
-                  <>
-                    {showResults ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
-                        <div className="flex justify-end mb-2">
-                          <Button variant="outline" size="sm" onClick={handleToggleView}>
-                            Mostrar Progresso de Validação
-                          </Button>
-                        </div>
+                        <h3 className="text-lg font-medium">Progresso da Validação</h3>
+                        <ValidationProgress
+                          currentStep={currentStep}
+                          progress={progress}
+                          results={results}
+                          isComplete={validationComplete}
+                        />
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">Resultados</h3>
                         <ResultsSummary 
                           results={results}
                           config={testConfig!}
@@ -222,22 +230,8 @@ Data: ${dateStr} - ${timeStr}
                           onDownloadCertificate={handleDownloadCertificate}
                         />
                       </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="flex justify-end mb-2">
-                          <Button variant="outline" size="sm" onClick={handleToggleView}>
-                            Mostrar Resultados
-                          </Button>
-                        </div>
-                        <ValidationProgress
-                          currentStep={currentStep}
-                          progress={progress}
-                          results={results}
-                          isComplete={validationComplete}
-                        />
-                      </div>
-                    )}
-                  </>
+                    </div>
+                  </div>
                 ) : (
                   <ValidationProgress
                     currentStep={currentStep}
@@ -270,7 +264,7 @@ Data: ${dateStr} - ${timeStr}
                             isValidating}
                   className="flex items-center"
                 >
-                  {activeTab === 'upload' ? 'Configurar Testes' : 'Iniciar Simulação'}
+                  {activeTab === 'upload' ? 'Configurar Testes' : 'Iniciar Demonstração'}
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </Button>
               )}

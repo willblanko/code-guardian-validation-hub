@@ -2,12 +2,23 @@
 import { TestConfig } from "@/components/TestConfigForm";
 import { TestResult } from "@/components/ValidationProgress";
 
+// ============================================
+// IMPORTANTE: ESTA É UMA SIMULAÇÃO
+// ============================================
+// Esta implementação apenas simula a execução de testes em aplicações Java.
+// Em um cenário real, seriam necessários:
+// 1. Um backend com execução de Java
+// 2. Integração com ferramentas como CFR, Fernflower, Procyon
+// 3. Ambiente para executar a JVM
+// 4. Acesso ao hardware para validação de licença
+// ============================================
+
 // Helper function to simulate asynchronous operations with more realistic timing
 const simulateOperation = (ms: number): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-// Core validation runner function
+// Core validation runner function - SIMULATION ONLY
 export const runValidation = async (
   file: File,
   config: TestConfig,
@@ -15,6 +26,8 @@ export const runValidation = async (
   onStepChange: (step: number) => void,
   onResultUpdate: (result: TestResult) => void
 ): Promise<boolean> => {
+  console.log("SIMULATION NOTICE: This is a simulated test run, not actual Java validation");
+  
   // Step 1: File Analysis - Tempo aumentado para parecer mais realista
   onStepChange(0);
   onProgress(5);
@@ -24,7 +37,7 @@ export const runValidation = async (
     id: 'file-analysis',
     name: 'Análise do arquivo JAR',
     status: 'success',
-    message: 'Arquivo JAR válido'
+    message: 'Arquivo JAR válido (simulação)'
   });
   
   onProgress(15);
@@ -118,8 +131,8 @@ export const runValidation = async (
       name: 'Verificação de licença',
       status: licenseValid ? 'success' : 'failed',
       message: licenseValid 
-        ? 'Mecanismo de validação de licença funcionando corretamente'
-        : 'Falha na validação do arquivo license.key - não foi possível verificar a licença com o hardware'
+        ? 'Mecanismo de validação de licença funcionando corretamente (simulação)'
+        : 'Falha na validação do arquivo license.key - não foi possível verificar a licença com o hardware (simulação)'
     });
     onProgress(70);
     
@@ -160,8 +173,8 @@ export const runValidation = async (
         name: 'Proteção contra descompilação',
         status: isEasilyDecompiled ? 'failed' : 'success',
         message: isEasilyDecompiled 
-          ? 'Aplicação facilmente descompilada com ferramentas comuns. Proteção insuficiente.'
-          : 'Proteção efetiva contra descompilação'
+          ? 'Aplicação facilmente descompilada com ferramentas comuns. Proteção insuficiente. (simulação)'
+          : 'Proteção efetiva contra descompilação (simulação)'
       });
       onProgress(92);
     }

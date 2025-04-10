@@ -19,6 +19,12 @@ export const useValidation = () => {
   ) => {
     if (!selectedFile || !testConfig) return false;
     
+    // Mensagem informativa sobre a simulação
+    toast({
+      title: "Demonstração iniciada",
+      description: "Esta é uma simulação e não executa testes reais no arquivo JAR.",
+    });
+    
     setIsValidating(true);
     setProgress(0);
     setCurrentStep(0);
@@ -43,15 +49,15 @@ export const useValidation = () => {
       
       setValidationComplete(true);
       toast({
-        title: "Validação concluída",
-        description: "O processo de validação foi finalizado com sucesso.",
+        title: "Demonstração concluída",
+        description: "O processo de simulação de validação foi finalizado.",
       });
       return true;
     } catch (error) {
-      console.error("Validation error:", error);
+      console.error("Erro na simulação:", error);
       toast({
-        title: "Erro de validação",
-        description: "Ocorreu um erro durante o processo de validação.",
+        title: "Erro na demonstração",
+        description: "Ocorreu um erro durante o processo de simulação.",
         variant: "destructive",
       });
       return false;
