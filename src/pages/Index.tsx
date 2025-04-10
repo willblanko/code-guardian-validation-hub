@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -103,8 +104,9 @@ const Index = () => {
   };
   
   const handleDownloadCertificate = () => {
-    const certificateContent = generateCertificate(results);
-    downloadTextFile(certificateContent, "certificado-validacao.txt");
+    // Instead of trying to pass Blob to downloadTextFile, we should use generateAndDownloadCertificate
+    // which is designed to handle PDF certificate generation and download
+    generateAndDownloadCertificate(results, selectedFile?.name || "arquivo.jar");
     
     toast({
       title: "Certificado baixado",

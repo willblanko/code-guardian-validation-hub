@@ -1,3 +1,4 @@
+
 import { TestConfig } from "@/components/TestConfigForm";
 import { TestResult, ValidationStatus } from "@/components/ValidationProgress";
 import { generatePdfReport, generatePdfCertificate, testDescriptions } from "@/utils/reportGenerator";
@@ -233,9 +234,9 @@ Data: ${dateStr} - ${timeStr}
   return report;
 };
 
-// Agora retorna um Blob em vez de string, para compatibilidade com o PDF
+// Function now correctly returns a Blob, not a string
 export const generateCertificate = (results: TestResult[]): Blob => {
-  // Repassamos para a função no reportGenerator que irá criar o PDF
+  // Return the PDF Blob
   return generatePdfCertificate(results);
 };
 
