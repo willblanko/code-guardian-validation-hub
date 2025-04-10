@@ -1,3 +1,4 @@
+
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { TestResult } from '@/components/ValidationProgress';
@@ -11,7 +12,8 @@ export const testDescriptions = {
     watermarkCheck: "Verifica a presença de marca d'água digital inserida durante o processo de obfuscação, útil para rastreabilidade."
   },
   functional: {
-    general: "Executa a aplicação para garantir que, apesar da obfuscação, ela mantém todas as funcionalidades originais e não apresenta erros de execução."
+    general: "Executa a aplicação para garantir que, apesar da obfuscação, ela mantém todas as funcionalidades originais e não apresenta erros de execução.",
+    licenseCheck: "Verifica se o sistema de validação de licenças está funcionando corretamente, incluindo a validação do arquivo license.key."
   },
   security: {
     decompilationProtection: "Avalia a resistência do código contra tentativas de descompilação, verificando se ferramentas comuns não conseguem reverter o bytecode.",
@@ -25,20 +27,27 @@ export const generatePdfReport = (results: TestResult[], config: any, fileName: 
   const dateStr = now.toLocaleDateString('pt-BR');
   const timeStr = now.toLocaleTimeString('pt-BR');
   
+  // Aviso de simulação 
+  doc.setFillColor(255, 248, 225);  // Cor de fundo amarelo claro
+  doc.rect(10, 10, 190, 20, 'F');
+  doc.setTextColor(150, 100, 0);  // Texto amarelo escuro
+  doc.setFontSize(10);
+  doc.text('AVISO: Este relatório é uma simulação para demonstração. Em um ambiente real, os testes seriam executados na aplicação Java.', 15, 20);
+  
   // Logo and Title
   doc.setFontSize(20);
   doc.setTextColor(31, 78, 121); // Guardian blue color
-  doc.text('Code Guardian', 105, 20, { align: 'center' });
+  doc.text('Code Guardian', 105, 40, { align: 'center' });
   doc.setFontSize(16);
-  doc.text('Relatório de Validação de Obfuscação', 105, 30, { align: 'center' });
+  doc.text('Relatório de Validação de Obfuscação', 105, 50, { align: 'center' });
   
   // Metadata
   doc.setFontSize(10);
   doc.setTextColor(100);
-  doc.text(`Data: ${dateStr} - ${timeStr}`, 20, 40);
-  doc.text(`Arquivo: ${fileName}`, 20, 45);
-  doc.text(`Tamanho: ${formatFileSize(fileSize)}`, 20, 50);
-  doc.text(`ID do Relatório: CG-${Math.random().toString(36).substring(2, 10).toUpperCase()}`, 20, 55);
+  doc.text(`Data: ${dateStr} - ${timeStr}`, 20, 60);
+  doc.text(`Arquivo: ${fileName}`, 20, 65);
+  doc.text(`Tamanho: ${formatFileSize(fileSize)}`, 20, 70);
+  doc.text(`ID do Relatório: CG-${Math.random().toString(36).substring(2, 10).toUpperCase()}`, 20, 75);
   
   // Summary
   const passedTests = results.filter(r => r.status === 'success').length;
@@ -47,79 +56,90 @@ export const generatePdfReport = (results: TestResult[], config: any, fileName: 
   
   doc.setFontSize(14);
   doc.setTextColor(31, 78, 121);
-  doc.text('Resumo da Validação', 20, 70);
+  doc.text('Resumo da Validação', 20, 90);
   
   doc.setFontSize(10);
   doc.setTextColor(0);
-  doc.text(`Total de testes: ${totalTests}`, 30, 80);
-  doc.text(`Testes aprovados: ${passedTests}`, 30, 85);
-  doc.text(`Taxa de aprovação: ${passRate}%`, 30, 90);
+  doc.text(`Total de testes: ${totalTests}`, 30, 100);
+  doc.text(`Testes aprovados: ${passedTests}`, 30, 105);
+  doc.text(`Taxa de aprovação: ${passRate}%`, 30, 110);
   
   // Results Table
   doc.setFontSize(14);
   doc.setTextColor(31, 78, 121);
-  doc.text('Resultados Detalhados', 20, 105);
+  doc.text('Resultados Detalhados', 20, 125);
   
   const tableData = results.map(result => {
+    // Formatação melhorada do status
     let statusText = '';
     switch(result.status) {
       case 'success':
-        statusText = '✓ APROVADO';
+        statusText = 'APROVADO';
         break;
       case 'warning':
-        statusText = '⚠ ALERTA';
+        statusText = 'ALERTA';
         break;
       case 'failed':
-        statusText = '✗ FALHA';
+        statusText = 'FALHA';
         break;
       default:
         statusText = result.status;
     }
     
+    // Descrição do teste
+    let description = getTestDescription(result.id);
+    
+    // Formatação melhorada da mensagem
     return [
       result.name,
       statusText,
-      result.message,
-      getTestDescription(result.id)
+      result.message
     ];
   });
   
   autoTable(doc, {
-    startY: 110,
-    head: [['Teste', 'Status', 'Resultado', 'Explicação']],
+    startY: 130,
+    head: [['Teste', 'Status', 'Resultado']],
     body: tableData,
     theme: 'striped',
     headStyles: { fillColor: [31, 78, 121], textColor: [255, 255, 255] },
     styles: { fontSize: 9 },
     columnStyles: { 
-      0: { cellWidth: 40 },
-      1: { cellWidth: 25 },
-      2: { cellWidth: 50 },
-      3: { cellWidth: 75 }
+      0: { cellWidth: 60 },
+      1: { cellWidth: 30 },
+      2: { cellWidth: 100 }
+    },
+    didDrawCell: (data) => {
+      // Aplicar cor específica para células de status
+      if (data.section === 'body' && data.column.index === 1) {
+        const status = tableData[data.row.index][1];
+        if (status === 'APROVADO') {
+          doc.setFillColor(200, 250, 200);
+          doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
+          doc.setTextColor(0, 100, 0);
+          doc.text('APROVADO', data.cell.x + 5, data.cell.y + 10);
+        } else if (status === 'ALERTA') {
+          doc.setFillColor(255, 250, 200);
+          doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
+          doc.setTextColor(150, 100, 0);
+          doc.text('ALERTA', data.cell.x + 5, data.cell.y + 10);
+        } else if (status === 'FALHA') {
+          doc.setFillColor(255, 200, 200);
+          doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
+          doc.setTextColor(150, 0, 0);
+          doc.text('FALHA', data.cell.x + 7, data.cell.y + 10);
+        }
+        return true; // Impede a renderização padrão da célula
+      }
+      return false; // Permite a renderização padrão para outras células
     }
   });
   
-  // Types of Tests Section
-  const finalY = (doc as any).lastAutoTable.finalY || 150;
-  
-  if (finalY > 250) {
-    doc.addPage();
-    doc.setFontSize(14);
-    doc.setTextColor(31, 78, 121);
-    doc.text('Tipos de Testes Realizados', 20, 20);
-    explainTests(doc, 30);
-  } else {
-    doc.setFontSize(14);
-    doc.setTextColor(31, 78, 121);
-    doc.text('Tipos de Testes Realizados', 20, finalY + 20);
-    explainTests(doc, finalY + 30);
-  }
-  
   // Conclusion
-  doc.addPage();
+  const finalY = (doc as any).lastAutoTable.finalY || 150;
   doc.setFontSize(14);
   doc.setTextColor(31, 78, 121);
-  doc.text('Conclusão', 20, 20);
+  doc.text('Conclusão', 20, finalY + 20);
   
   doc.setFontSize(10);
   doc.setTextColor(0);
@@ -134,12 +154,12 @@ export const generatePdfReport = (results: TestResult[], config: any, fileName: 
   }
   
   const splitText = doc.splitTextToSize(conclusionText, 170);
-  doc.text(splitText, 20, 30);
+  doc.text(splitText, 20, finalY + 30);
   
   // Certification
   doc.setFontSize(14);
   doc.setTextColor(31, 78, 121);
-  doc.text('Certificação', 20, 60);
+  doc.text('Certificação', 20, finalY + 60);
   
   doc.setFontSize(10);
   doc.setTextColor(0);
@@ -154,7 +174,7 @@ export const generatePdfReport = (results: TestResult[], config: any, fileName: 
   }
   
   const splitCertText = doc.splitTextToSize(certificationText, 170);
-  doc.text(splitCertText, 20, 70);
+  doc.text(splitCertText, 20, finalY + 70);
   
   // Footer with validity
   doc.setFontSize(8);
@@ -175,28 +195,35 @@ export const generatePdfCertificate = (results: TestResult[]): Blob => {
   const totalTests = results.length;
   const passRate = Math.round((passedTests / totalTests) * 100);
   
+  // Aviso de simulação
+  doc.setFillColor(255, 248, 225);  // Cor de fundo amarelo claro
+  doc.rect(10, 10, 190, 15, 'F');
+  doc.setTextColor(150, 100, 0);  // Texto amarelo escuro
+  doc.setFontSize(8);
+  doc.text('CERTIFICADO SIMULADO - Este é um documento de demonstração e não representa uma validação real', 105, 17, { align: 'center' });
+  
   // Cabeçalho
   doc.setFillColor(31, 78, 121);
-  doc.rect(0, 0, 210, 40, 'F');
+  doc.rect(0, 30, 210, 40, 'F');
   
   doc.setTextColor(255);
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.text('CERTIFICADO DE VALIDAÇÃO', 105, 25, { align: 'center' });
+  doc.text('CERTIFICADO DE VALIDAÇÃO', 105, 55, { align: 'center' });
   
   // Logo ou Emblema
   doc.setFillColor(230, 230, 230);
-  doc.circle(105, 80, 25, 'F');
+  doc.circle(105, 100, 25, 'F');
   doc.setTextColor(31, 78, 121);
   doc.setFontSize(42);
   doc.setFont('helvetica', 'bold');
-  doc.text('CG', 105, 80 + 15, { align: 'center' });
+  doc.text('CG', 105, 100 + 15, { align: 'center' });
   
   // Título
   doc.setTextColor(31, 78, 121);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text('CODE GUARDIAN', 105, 120, { align: 'center' });
+  doc.text('CODE GUARDIAN', 105, 140, { align: 'center' });
   
   // Texto do certificado
   doc.setTextColor(0);
@@ -207,11 +234,11 @@ export const generatePdfCertificate = (results: TestResult[]): Blob => {
 à análise foi validada pelo sistema Code Guardian e obteve
 os seguintes resultados:`;
   
-  doc.text(certText, 105, 140, { align: 'center' });
+  doc.text(certText, 105, 160, { align: 'center' });
   
   // Detalhes
   doc.setFontSize(12);
-  const detailsY = 165;
+  const detailsY = 185;
   
   doc.setFont('helvetica', 'bold');
   doc.text('Data da validação:', 55, detailsY);
@@ -307,97 +334,14 @@ function getTestDescription(testId: string): string {
     return testDescriptions.obfuscation.watermarkCheck;
   } else if (testId === 'functional-test') {
     return testDescriptions.functional.general;
+  } else if (testId === 'license-verification') {
+    return testDescriptions.functional.licenseCheck;
+  } else if (testId === 'app-startup') {
+    return 'Verifica se a aplicação inicia corretamente após a obfuscação.';
   } else if (testId === 'decompilation') {
     return testDescriptions.security.decompilationProtection;
   } else if (testId === 'anti-debug') {
     return testDescriptions.security.antiDebug;
   }
   return 'Verificação da implementação de técnicas de proteção de código.';
-}
-
-function explainTests(doc: jsPDF, startY: number): number {
-  doc.setFontSize(12);
-  doc.setTextColor(31, 78, 121);
-  doc.text('Testes de Obfuscação', 30, startY);
-  
-  doc.setFontSize(9);
-  doc.setTextColor(0);
-  startY += 10;
-  
-  // Obfuscation tests
-  doc.setFontSize(10);
-  doc.setTextColor(40, 40, 40);
-  doc.text('Obfuscação de Nomes de Classes:', 35, startY);
-  doc.setFontSize(9);
-  doc.setTextColor(70, 70, 70);
-  const classText = doc.splitTextToSize(testDescriptions.obfuscation.classNameObfuscation, 155);
-  doc.text(classText, 40, startY + 5);
-  startY += 15;
-  
-  doc.setFontSize(10);
-  doc.setTextColor(40, 40, 40);
-  doc.text('Criptografia de Strings:', 35, startY);
-  doc.setFontSize(9);
-  doc.setTextColor(70, 70, 70);
-  const stringText = doc.splitTextToSize(testDescriptions.obfuscation.stringEncryption, 155);
-  doc.text(stringText, 40, startY + 5);
-  startY += 15;
-  
-  doc.setFontSize(10);
-  doc.setTextColor(40, 40, 40);
-  doc.text('Obfuscação de Fluxo de Controle:', 35, startY);
-  doc.setFontSize(9);
-  doc.setTextColor(70, 70, 70);
-  const flowText = doc.splitTextToSize(testDescriptions.obfuscation.controlFlowObfuscation, 155);
-  doc.text(flowText, 40, startY + 5);
-  startY += 15;
-  
-  doc.setFontSize(10);
-  doc.setTextColor(40, 40, 40);
-  doc.text('Verificação de Marca d\'água:', 35, startY);
-  doc.setFontSize(9);
-  doc.setTextColor(70, 70, 70);
-  const watermarkText = doc.splitTextToSize(testDescriptions.obfuscation.watermarkCheck, 155);
-  doc.text(watermarkText, 40, startY + 5);
-  startY += 20;
-  
-  // Functional tests
-  doc.setFontSize(12);
-  doc.setTextColor(31, 78, 121);
-  doc.text('Testes Funcionais', 30, startY);
-  startY += 10;
-  
-  doc.setFontSize(10);
-  doc.setTextColor(40, 40, 40);
-  doc.text('Verificação de Funcionalidade:', 35, startY);
-  doc.setFontSize(9);
-  doc.setTextColor(70, 70, 70);
-  const functionalText = doc.splitTextToSize(testDescriptions.functional.general, 155);
-  doc.text(functionalText, 40, startY + 5);
-  startY += 20;
-  
-  // Security tests
-  doc.setFontSize(12);
-  doc.setTextColor(31, 78, 121);
-  doc.text('Testes de Segurança', 30, startY);
-  startY += 10;
-  
-  doc.setFontSize(10);
-  doc.setTextColor(40, 40, 40);
-  doc.text('Proteção contra Descompilação:', 35, startY);
-  doc.setFontSize(9);
-  doc.setTextColor(70, 70, 70);
-  const decompileText = doc.splitTextToSize(testDescriptions.security.decompilationProtection, 155);
-  doc.text(decompileText, 40, startY + 5);
-  startY += 15;
-  
-  doc.setFontSize(10);
-  doc.setTextColor(40, 40, 40);
-  doc.text('Proteções Anti-Debug:', 35, startY);
-  doc.setFontSize(9);
-  doc.setTextColor(70, 70, 70);
-  const debugText = doc.splitTextToSize(testDescriptions.security.antiDebug, 155);
-  doc.text(debugText, 40, startY + 5);
-  
-  return startY + 20;
 }

@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { CheckCircle, XCircle, AlertCircle, Clock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export type ValidationStatus = 'waiting' | 'running' | 'success' | 'failed' | 'warning';
 
@@ -58,16 +60,31 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({
   const steps = [
     { label: 'Carregamento', description: 'Validando o arquivo JAR' },
     { label: 'Análise', description: 'Verificando obfuscação' },
-    { label: 'Testes', description: 'Executando testes funcionais' },
+    { label: 'Testes', description: 'Simulando testes funcionais' },
     { label: 'Finalização', description: 'Gerando relatório' },
   ];
 
   return (
     <div className="space-y-8">
+      <Card className="border-dashed border-yellow-400 bg-yellow-50">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex items-start">
+            <AlertCircle className="h-5 w-5 text-yellow-500 mr-2 mt-0.5" />
+            <div>
+              <p className="text-sm text-yellow-800">
+                <strong>Ambiente de simulação:</strong> Esta é uma demonstração que simula a validação de aplicações Java. 
+                Em um ambiente real, os testes seriam executados diretamente na aplicação, incluindo 
+                verificação de licenças e proteções anti-debugging.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Progress bar */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span>Progresso da validação</span>
+          <span>Progresso da simulação</span>
           <span>{Math.round(progress)}%</span>
         </div>
         <div className="progress-track">
@@ -109,19 +126,30 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({
             {results.map((result) => (
               <div 
                 key={result.id} 
-                className={`flex items-center justify-between p-3 border rounded ${getStatusClass(result.status)}`}
+                className={`flex items-start justify-between p-3 border rounded ${getStatusClass(result.status)}`}
               >
-                <div className="flex items-center">
-                  {getStatusIcon(result.status)}
-                  <span className="ml-2 font-medium">{result.name}</span>
+                <div className="flex items-start">
+                  <div className="mt-0.5 mr-2">
+                    {getStatusIcon(result.status)}
+                  </div>
+                  <div>
+                    <span className="font-medium">{result.name}</span>
+                    <p className="text-sm mt-1">{result.message}</p>
+                  </div>
                 </div>
-                <span className="text-sm">{result.message}</span>
+                <Badge variant={
+                  result.status === 'success' ? 'success' : 
+                  result.status === 'warning' ? 'warning' : 'destructive'
+                }>
+                  {result.status === 'success' ? 'Aprovado' : 
+                   result.status === 'warning' ? 'Alerta' : 'Falha'}
+                </Badge>
               </div>
             ))}
           </div>
         ) : (
           <div className="p-4 bg-gray-50 rounded-lg border text-center text-gray-500">
-            {currentStep > 0 ? "Aguardando resultados..." : "A validação será iniciada em breve"}
+            {currentStep > 0 ? "Aguardando resultados..." : "A simulação será iniciada em breve"}
           </div>
         )}
       </div>

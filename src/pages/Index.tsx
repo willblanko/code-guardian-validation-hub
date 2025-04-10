@@ -15,10 +15,9 @@ import ValidationHeader from '@/components/validation/ValidationHeader';
 import ValidationTutorial from '@/components/validation/ValidationTutorial';
 import { useValidation } from '@/hooks/useValidation';
 import { 
-  generateReport, 
+  generateAndDownloadPDF, 
   downloadTextFile, 
-  generateAndDownloadCertificate, 
-  generateAndDownloadPDF
+  generateAndDownloadCertificate
 } from '@/lib/validationService';
 
 const Index = () => {
@@ -26,6 +25,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('upload');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [testConfig, setTestConfig] = useState<TestConfig | null>(null);
+  const [showResults, setShowResults] = useState(false);
   
   const {
     isValidating,
@@ -74,8 +74,9 @@ const Index = () => {
   };
   
   const handleDownloadTextReport = () => {
-    const reportContent = generateReport(results);
-    downloadTextFile(reportContent, "relatorio-validacao.txt");
+    if (!results.length) return;
+    const reportText = generateReport(results);
+    downloadTextFile(reportText, "relatorio-validacao.txt");
     
     toast({
       title: "Relatório texto baixado",
@@ -98,10 +99,63 @@ const Index = () => {
     setTestConfig(null);
     resetValidation();
     setActiveTab('upload');
+    setShowResults(false);
+  };
+  
+  const handleShowResults = () => {
+    setShowResults(true);
+  };
+
+  const handleToggleView = () => {
+    setShowResults(!showResults);
   };
 
   const canProceedFromUpload = !!selectedFile;
   const canProceedFromConfig = !!testConfig;
+  
+  // Helper function to generate a text report
+  const generateReport = (results: any[]): string => {
+    const passedTests = results.filter(r => r.status === 'success').length;
+    const totalTests = results.length;
+    const passRate = Math.round((passedTests / totalTests) * 100);
+    
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('pt-BR');
+    const timeStr = now.toLocaleTimeString('pt-BR');
+    
+    let report = `# Relatório de Validação de Obfuscação
+Data: ${dateStr} - ${timeStr}
+
+## Resumo
+- Total de testes: ${totalTests}
+- Testes aprovados: ${passedTests}
+- Taxa de aprovação: ${passRate}%
+
+## Resultados detalhados\n`;
+
+    results.forEach(result => {
+      const statusText = 
+        result.status === 'success' ? '✅ APROVADO' : 
+        result.status === 'warning' ? '⚠️ ALERTA' : 
+        result.status === 'failed' ? '❌ FALHA' : '';
+        
+      report += `\n### ${result.name}\n`;
+      report += `Status: ${statusText}\n`;
+      report += `Detalhes: ${result.message}\n`;
+    });
+    
+    report += `\n## Conclusão\n`;
+    
+    if (passRate === 100) {
+      report += `A aplicação passou em todos os testes de validação. A obfuscação foi implementada corretamente e a funcionalidade está preservada.`;
+    } else if (passRate >= 80) {
+      report += `A aplicação passou na maioria dos testes de validação. Recomenda-se revisar os avisos antes da implantação em produção.`;
+    } else {
+      report += `A aplicação apresentou problemas em vários testes. Recomenda-se revisar a implementação da obfuscação.`;
+    }
+    
+    return report;
+  };
   
   return (
     <AppLayout>
@@ -115,7 +169,7 @@ const Index = () => {
               <CardTitle>Code Guardian - Validação Hub</CardTitle>
             </div>
             <CardDescription>
-              Realize testes de validação em sua aplicação Java obfuscada e obtenha evidências de conformidade.
+              Simulação de testes de validação em aplicações Java obfuscadas para demonstrar o processo de verificação.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -142,7 +196,7 @@ const Index = () => {
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Configure os testes de validação</h3>
                   <p className="text-gray-600">
-                    Personalize os testes que serão executados na sua aplicação. 
+                    Personalize os testes que serão simulados na sua aplicação. 
                     Você pode selecionar diferentes tipos de verificações de obfuscação e testes funcionais.
                   </p>
                   <TestConfigForm onConfigChange={handleConfigChange} />
@@ -151,14 +205,39 @@ const Index = () => {
               
               <TabsContent value="validate" className="space-y-6">
                 {validationComplete ? (
-                  <ResultsSummary 
-                    results={results}
-                    config={testConfig!}
-                    fileName={selectedFile?.name || "arquivo.jar"}
-                    fileSize={selectedFile?.size || 0}
-                    onDownloadReport={handleDownloadReport}
-                    onDownloadCertificate={handleDownloadCertificate}
-                  />
+                  <>
+                    {showResults ? (
+                      <div className="space-y-4">
+                        <div className="flex justify-end mb-2">
+                          <Button variant="outline" size="sm" onClick={handleToggleView}>
+                            Mostrar Progresso de Validação
+                          </Button>
+                        </div>
+                        <ResultsSummary 
+                          results={results}
+                          config={testConfig!}
+                          fileName={selectedFile?.name || "arquivo.jar"}
+                          fileSize={selectedFile?.size || 0}
+                          onDownloadReport={handleDownloadReport}
+                          onDownloadCertificate={handleDownloadCertificate}
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex justify-end mb-2">
+                          <Button variant="outline" size="sm" onClick={handleToggleView}>
+                            Mostrar Resultados
+                          </Button>
+                        </div>
+                        <ValidationProgress
+                          currentStep={currentStep}
+                          progress={progress}
+                          results={results}
+                          isComplete={validationComplete}
+                        />
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <ValidationProgress
                     currentStep={currentStep}
@@ -178,24 +257,25 @@ const Index = () => {
                   if (activeTab === 'configure') setActiveTab('upload');
                   if (activeTab === 'validate' && !validationComplete) setActiveTab('configure');
                 }}
-                disabled={activeTab === 'upload' || isValidating || (activeTab === 'validate' && validationComplete)}
+                disabled={activeTab === 'upload' || isValidating}
               >
                 Voltar
               </Button>
               
-              <Button
-                onClick={handleNextTab}
-                disabled={(activeTab === 'upload' && !canProceedFromUpload) || 
-                          (activeTab === 'configure' && !canProceedFromConfig) ||
-                          activeTab === 'validate' || 
-                          isValidating}
-                className="flex items-center"
-              >
-                {activeTab === 'upload' ? 'Configurar Testes' : 'Iniciar Validação'}
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
+              {activeTab !== 'validate' && (
+                <Button
+                  onClick={handleNextTab}
+                  disabled={(activeTab === 'upload' && !canProceedFromUpload) || 
+                            (activeTab === 'configure' && !canProceedFromConfig) ||
+                            isValidating}
+                  className="flex items-center"
+                >
+                  {activeTab === 'upload' ? 'Configurar Testes' : 'Iniciar Simulação'}
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
               
-              {activeTab === 'validate' && validationComplete && (
+              {validationComplete && (
                 <Button onClick={handleStartNewValidation}>
                   Nova Validação
                 </Button>
