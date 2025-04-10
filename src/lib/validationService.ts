@@ -1,8 +1,8 @@
-
 import { TestConfig } from "@/components/TestConfigForm";
 import { TestResult, ValidationStatus } from "@/components/ValidationProgress";
 import { generatePdfReport, testDescriptions } from "@/utils/reportGenerator";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 // Simulação de resultados para demonstração
 export const runValidation = async (
@@ -130,15 +130,15 @@ export const saveTestResults = async (
   results: TestResult[]
 ): Promise<string | null> => {
   try {
-    // Fix: Using the proper typings for Supabase table access
+    // Fix: Using the proper format for Supabase insert - passing an array with a single object
     const { data, error } = await supabase
       .from('validation_tests')
-      .insert({
+      .insert([{
         file_name: fileName,
         file_size: fileSize,
-        test_config: config,
-        results: results
-      })
+        test_config: config as Json,
+        results: results as Json
+      }])
       .select('id')
       .single();
     
