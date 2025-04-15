@@ -1,10 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Shield, Info } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export interface TestConfig {
   obfuscationTests: {
@@ -26,128 +24,175 @@ export interface TestConfig {
 }
 
 interface TestConfigFormProps {
-  onConfigChange: (config: TestConfig) => void;
+  config: TestConfig;
+  onChange: (config: TestConfig) => void;
 }
 
-const defaultConfig: TestConfig = {
-  obfuscationTests: {
-    classNameObfuscation: true,
-    stringEncryption: true,
-    controlFlowObfuscation: true,
-    watermarkCheck: false,
-  },
-  functionalTests: {
-    enabled: false,
-    customTestCommand: "",
-    timeoutSeconds: 60,
-  },
-  securityTests: {
-    enabled: false,
-    decompilationProtection: false,
-    antiDebug: false,
-  },
-};
-
-const TestConfigForm: React.FC<TestConfigFormProps> = ({ onConfigChange }) => {
-  const [config, setConfig] = useState<TestConfig>(defaultConfig);
-
-  // Initialize with default config on mount
-  useEffect(() => {
-    onConfigChange(defaultConfig);
-  }, [onConfigChange]);
-
-  const handleConfigChange = <T extends keyof TestConfig, K extends keyof TestConfig[T]>(
-    section: T,
-    field: K,
-    value: TestConfig[T][K]
-  ) => {
-    const newConfig = {
-      ...config,
-      [section]: {
-        ...config[section],
-        [field]: value,
-      },
-    };
-    setConfig(newConfig);
-    onConfigChange(newConfig);
+const TestConfigForm: React.FC<TestConfigFormProps> = ({ config, onChange }) => {
+  const handleConfigChange = (section: keyof TestConfig, key: string, value: boolean | string | number) => {
+    const newConfig = { ...config };
+    
+    // @ts-ignore
+    newConfig[section][key] = value;
+    onChange(newConfig);
   };
 
   return (
     <div className="space-y-6">
-      <div className="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-md mb-6">
-        <div className="flex items-start">
-          <Info className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
-          <div>
-            <p className="text-blue-800 text-sm">
-              Esta ferramenta realiza análise estática básica do arquivo JAR e fornece orientações sobre como 
-              verificar a obfuscação usando ferramentas especializadas. A execução real dos testes de obfuscação 
-              requer software local.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <Accordion type="single" collapsible defaultValue="obfuscation" className="w-full">
-        <AccordionItem value="obfuscation">
-          <AccordionTrigger className="flex items-center">
-            <div className="flex items-center">
-              <Shield className="mr-2 h-5 w-5 text-guardian-blue" />
-              <span>Análise de Obfuscação</span>
+      <Card>
+        <CardHeader>
+          <CardTitle>Testes de Ofuscação</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-start space-x-2">
+              <Checkbox 
+                id="classNameObfuscation" 
+                checked={config.obfuscationTests.classNameObfuscation}
+                onCheckedChange={(checked) => 
+                  handleConfigChange('obfuscationTests', 'classNameObfuscation', !!checked)
+                }
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="classNameObfuscation">Ofuscação de nomes de classes</Label>
+                <p className="text-sm text-gray-500">
+                  Verifica se os nomes das classes e métodos foram ofuscados
+                </p>
+              </div>
             </div>
-          </AccordionTrigger>
-          <AccordionContent>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="classNameObfuscation" 
-                      checked={config.obfuscationTests.classNameObfuscation}
-                      onCheckedChange={(checked) => 
-                        handleConfigChange('obfuscationTests', 'classNameObfuscation', Boolean(checked))
-                      }
-                    />
-                    <Label htmlFor="classNameObfuscation">Verificar obfuscação de nomes de classes</Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="stringEncryption" 
-                      checked={config.obfuscationTests.stringEncryption}
-                      onCheckedChange={(checked) => 
-                        handleConfigChange('obfuscationTests', 'stringEncryption', Boolean(checked))
-                      }
-                    />
-                    <Label htmlFor="stringEncryption">Verificar criptografia de strings</Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="controlFlowObfuscation" 
-                      checked={config.obfuscationTests.controlFlowObfuscation}
-                      onCheckedChange={(checked) => 
-                        handleConfigChange('obfuscationTests', 'controlFlowObfuscation', Boolean(checked))
-                      }
-                    />
-                    <Label htmlFor="controlFlowObfuscation">Verificar obfuscação de fluxo de controle</Label>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="watermarkCheck" 
-                      checked={config.obfuscationTests.watermarkCheck}
-                      onCheckedChange={(checked) => 
-                        handleConfigChange('obfuscationTests', 'watermarkCheck', Boolean(checked))
-                      }
-                    />
-                    <Label htmlFor="watermarkCheck">Verificar marca d'água digital</Label>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+            
+            <div className="flex items-start space-x-2">
+              <Checkbox 
+                id="stringEncryption" 
+                checked={config.obfuscationTests.stringEncryption}
+                onCheckedChange={(checked) => 
+                  handleConfigChange('obfuscationTests', 'stringEncryption', !!checked)
+                }
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="stringEncryption">Criptografia de strings</Label>
+                <p className="text-sm text-gray-500">
+                  Verifica se as strings no código foram criptografadas
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-2">
+              <Checkbox 
+                id="controlFlowObfuscation" 
+                checked={config.obfuscationTests.controlFlowObfuscation}
+                onCheckedChange={(checked) => 
+                  handleConfigChange('obfuscationTests', 'controlFlowObfuscation', !!checked)
+                }
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="controlFlowObfuscation">Ofuscação de fluxo de controle</Label>
+                <p className="text-sm text-gray-500">
+                  Verifica se o fluxo de controle foi ofuscado
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-2">
+              <Checkbox 
+                id="watermarkCheck" 
+                checked={config.obfuscationTests.watermarkCheck}
+                onCheckedChange={(checked) => 
+                  handleConfigChange('obfuscationTests', 'watermarkCheck', !!checked)
+                }
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="watermarkCheck">Verificação de marca d'água</Label>
+                <p className="text-sm text-gray-500">
+                  Verifica se há marcas d'água no código
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Testes Funcionais</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-start space-x-2">
+              <Checkbox 
+                id="functionalEnabled" 
+                checked={config.functionalTests.enabled}
+                onCheckedChange={(checked) => 
+                  handleConfigChange('functionalTests', 'enabled', !!checked)
+                }
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="functionalEnabled">Ativar testes funcionais</Label>
+                <p className="text-sm text-gray-500">
+                  Executa testes funcionais na aplicação ofuscada
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Testes de Segurança</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-start space-x-2">
+              <Checkbox 
+                id="securityEnabled" 
+                checked={config.securityTests.enabled}
+                onCheckedChange={(checked) => 
+                  handleConfigChange('securityTests', 'enabled', !!checked)
+                }
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="securityEnabled">Ativar testes de segurança</Label>
+                <p className="text-sm text-gray-500">
+                  Verifica proteções de segurança na aplicação
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-2">
+              <Checkbox 
+                id="decompilationProtection" 
+                checked={config.securityTests.decompilationProtection}
+                onCheckedChange={(checked) => 
+                  handleConfigChange('securityTests', 'decompilationProtection', !!checked)
+                }
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="decompilationProtection">Proteção contra descompilação</Label>
+                <p className="text-sm text-gray-500">
+                  Verifica se há proteções contra descompilação
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-2">
+              <Checkbox 
+                id="antiDebug" 
+                checked={config.securityTests.antiDebug}
+                onCheckedChange={(checked) => 
+                  handleConfigChange('securityTests', 'antiDebug', !!checked)
+                }
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="antiDebug">Proteção anti-debug</Label>
+                <p className="text-sm text-gray-500">
+                  Verifica se há proteções contra depuração
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -34,7 +34,11 @@ const Index = () => {
   } = useValidation();
   
   const handleFilesSelected = (files: ValidationFiles) => {
-    setSelectedFiles(files);
+    // Manter os arquivos existentes que não foram substituídos
+    setSelectedFiles(prevFiles => ({
+      ...prevFiles,
+      ...files
+    }));
     
     // Verificar se temos pelo menos o JAR ofuscado
     if (files.obfuscatedJar) {
@@ -46,7 +50,8 @@ const Index = () => {
   };
   
   const handleStartValidation = () => {
-    if (selectedFiles.originalJar && selectedFiles.obfuscatedJar && selectedFiles.mappingFile) {
+    // Verificação completa dos arquivos necessários
+    if (selectedFiles.originalJar && selectedFiles.obfuscatedJar) {
       startValidation(selectedFiles, {
         obfuscationTests: {
           classNameObfuscation: true,
@@ -55,18 +60,20 @@ const Index = () => {
           watermarkCheck: true
         },
         functionalTests: {
-          appStartupTest: true,
-          licenseVerification: true
+          enabled: true,
+          customTestCommand: "",
+          timeoutSeconds: 30
         },
         securityTests: {
+          enabled: true,
           decompilationProtection: true,
-          antiDebugCheck: true
+          antiDebug: true
         }
       });
     } else {
       toast({
         title: "Arquivos incompletos",
-        description: "Por favor, carregue todos os arquivos necessários (JAR original, JAR ofuscado e mapping.txt).",
+        description: "Por favor, carregue o JAR original e o JAR ofuscado para prosseguir. O arquivo mapping.txt é recomendado, mas opcional.",
         variant: "destructive"
       });
     }
@@ -85,12 +92,14 @@ const Index = () => {
           watermarkCheck: true
         },
         functionalTests: {
-          appStartupTest: true,
-          licenseVerification: true
+          enabled: true,
+          customTestCommand: "",
+          timeoutSeconds: 30
         },
         securityTests: {
+          enabled: true,
           decompilationProtection: true,
-          antiDebugCheck: true
+          antiDebug: true
         }
       }, 
       selectedFiles.obfuscatedJar.name, 
@@ -130,7 +139,7 @@ const Index = () => {
   };
   
   // Verificamos se todos os arquivos necessários foram carregados
-  const allFilesUploaded = !!selectedFiles.originalJar && !!selectedFiles.obfuscatedJar && !!selectedFiles.mappingFile;
+  const allFilesUploaded = !!selectedFiles.originalJar && !!selectedFiles.obfuscatedJar;
   
   // Helper function to generate a text report
   const generateReport = (results: any[]): string => {
@@ -237,12 +246,14 @@ Para realizar ofuscação eficiente de código Java, recomendamos:
                           watermarkCheck: true
                         },
                         functionalTests: {
-                          appStartupTest: true,
-                          licenseVerification: true
+                          enabled: true,
+                          customTestCommand: "",
+                          timeoutSeconds: 30
                         },
                         securityTests: {
+                          enabled: true,
                           decompilationProtection: true,
-                          antiDebugCheck: true
+                          antiDebug: true
                         }
                       }}
                       fileName={selectedFiles.obfuscatedJar?.name || "arquivo.jar"}
