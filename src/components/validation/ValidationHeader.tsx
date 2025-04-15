@@ -14,16 +14,16 @@ const ValidationHeader: React.FC = () => {
       
       <Alert className="mb-4 bg-blue-50 border-blue-200 text-blue-800">
         <Info className="h-4 w-4 mr-2" />
-        <AlertTitle>Análise de código Java</AlertTitle>
+        <AlertTitle>Análise e Descompilação de Código Java</AlertTitle>
         <AlertDescription>
-          Esta plataforma analisa arquivos JAR para validar técnicas de ofuscação e
-          oferece integração com serviços de descompilação para comparação detalhada.
+          Esta plataforma analisa e descompila arquivos JAR para validar técnicas de ofuscação,
+          comparando versões originais e ofuscadas utilizando o arquivo mapping.txt do ProGuard.
         </AlertDescription>
       </Alert>
       
       <div className="inline-flex items-center bg-yellow-100 text-yellow-800 px-3 py-1 rounded-md text-sm">
         <Info className="h-4 w-4 mr-2" />
-        <span>Carregue o arquivo JAR original, a versão ofuscada e o mapping.txt para análise comparativa</span>
+        <span>Carregue o arquivo JAR original, a versão ofuscada e o mapping.txt para análise detalhada</span>
       </div>
     </div>
   );

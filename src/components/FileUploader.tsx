@@ -3,7 +3,6 @@ import React, { useState, useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { UploadCloud, File, CheckCircle, X, AlertCircle } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface FileUploaderProps {
   onFilesSelected: (files: {
@@ -20,7 +19,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesSelected }) => {
     obfuscatedJar?: File,
     mappingFile?: File
   }>({});
-  const [activeTab, setActiveTab] = useState("original");
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -32,22 +30,22 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesSelected }) => {
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>, fileType: keyof typeof selectedFiles) => {
     e.preventDefault();
     setIsDragging(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
-      processFile(file, activeTab as keyof typeof selectedFiles);
+      processFile(file, fileType);
     }
-  }, [activeTab]);
+  }, [selectedFiles]);
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, fileType: keyof typeof selectedFiles) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       processFile(file, fileType);
     }
-  }, []);
+  }, [selectedFiles]);
 
   const processFile = (file: File, fileType: keyof typeof selectedFiles) => {
     // Validação de arquivos
@@ -71,8 +69,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesSelected }) => {
       }
     }
     
+    // Cria um novo objeto mantendo os arquivos existentes e adicionando/substituindo o novo
     const updatedFiles = { ...selectedFiles, [fileType]: file };
     setSelectedFiles(updatedFiles);
+    
+    // Enviamos os arquivos atualizados para o componente pai
     onFilesSelected(updatedFiles);
     
     toast({
@@ -80,10 +81,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesSelected }) => {
       description: `${file.name} (${formatFileSize(file.size)})`,
       variant: "default"
     });
-    
-    // Avance para o próximo tab
-    if (fileType === 'originalJar') setActiveTab('obfuscated');
-    else if (fileType === 'obfuscatedJar') setActiveTab('mapping');
   };
 
   const handleRemoveFile = useCallback((fileType: keyof typeof selectedFiles) => {
@@ -105,17 +102,17 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesSelected }) => {
     const selectedFile = selectedFiles[fileType];
     
     return (
-      <div className="w-full">
+      <div className="w-full mb-6">
+        <h3 className="text-lg font-medium mb-2">{label}</h3>
         {!selectedFile ? (
           <div 
-            className={`dropzone ${isDragging ? 'dropzone-active' : 'border-gray-300 hover:border-guardian-blue'}`}
+            className={`dropzone border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors ${isDragging ? 'border-guardian-blue bg-blue-50' : 'border-gray-300 hover:border-guardian-blue'}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
+            onDrop={(e) => handleDrop(e, fileType)}
           >
             <div className="flex flex-col items-center justify-center text-center">
               <UploadCloud className="w-12 h-12 mb-3 text-guardian-blue" />
-              <h3 className="mb-2 font-semibold text-lg">{label}</h3>
               <p className="mb-4 text-sm text-gray-500">{description}</p>
               <Button asChild>
                 <label className="cursor-pointer">
@@ -158,7 +155,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesSelected }) => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-orange-50 border border-orange-200 p-4 rounded-md text-orange-800 mb-4">
+      <div className="bg-orange-50 border border-orange-200 p-4 rounded-md text-orange-800 mb-6">
         <div className="flex">
           <AlertCircle className="h-5 w-5 mr-2 mt-0.5" />
           <div>
@@ -172,25 +169,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesSelected }) => {
         </div>
       </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 mb-4">
-          <TabsTrigger value="original">JAR Original</TabsTrigger>
-          <TabsTrigger value="obfuscated">JAR Ofuscado</TabsTrigger>
-          <TabsTrigger value="mapping">Mapping.txt</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="original">
-          {renderFileUploader('originalJar', 'Arquivo JAR Original', 'Carregue o arquivo JAR antes da ofuscação', '.jar')}
-        </TabsContent>
-        
-        <TabsContent value="obfuscated">
-          {renderFileUploader('obfuscatedJar', 'Arquivo JAR Ofuscado', 'Carregue o arquivo JAR após a ofuscação', '.jar')}
-        </TabsContent>
-        
-        <TabsContent value="mapping">
-          {renderFileUploader('mappingFile', 'Arquivo Mapping', 'Carregue o arquivo mapping.txt gerado pelo ProGuard', '.txt')}
-        </TabsContent>
-      </Tabs>
+      <div className="space-y-4">
+        {renderFileUploader('originalJar', 'Arquivo JAR Original', 'Carregue o arquivo JAR antes da ofuscação', '.jar')}
+        {renderFileUploader('obfuscatedJar', 'Arquivo JAR Ofuscado', 'Carregue o arquivo JAR após a ofuscação', '.jar')}
+        {renderFileUploader('mappingFile', 'Arquivo Mapping', 'Carregue o arquivo mapping.txt gerado pelo ProGuard', '.txt')}
+      </div>
       
       <div className="flex justify-between items-center p-4 border rounded-lg bg-gray-50">
         <div>
@@ -219,18 +202,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesSelected }) => {
             </p>
           </div>
         </div>
-        <Button 
-          disabled={!selectedFiles.originalJar || !selectedFiles.obfuscatedJar}
-          variant="default"
-          onClick={() => {
-            toast({
-              title: "Arquivos prontos",
-              description: "Todos os arquivos necessários foram carregados.",
-            });
-          }}
-        >
-          Prosseguir
-        </Button>
       </div>
     </div>
   );

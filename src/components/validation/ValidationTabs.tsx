@@ -1,48 +1,39 @@
 
 import React from 'react';
-import { TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, Cog, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, Upload } from 'lucide-react';
 
 interface ValidationTabsProps {
-  activeTab: string;
-  canProceedFromUpload: boolean;
-  canProceedFromConfig: boolean;
+  allFilesUploaded: boolean;
   isValidating: boolean;
+  onStartValidation: () => void;
 }
 
 const ValidationTabs: React.FC<ValidationTabsProps> = ({
-  activeTab,
-  canProceedFromUpload,
-  canProceedFromConfig,
-  isValidating
+  allFilesUploaded,
+  isValidating,
+  onStartValidation
 }) => {
   return (
-    <TabsList className="grid w-full grid-cols-3 mb-8">
-      <TabsTrigger 
-        value="upload" 
-        className="flex items-center justify-center"
-        disabled={isValidating}
+    <div className="flex justify-center mb-8">
+      <Button 
+        className="px-6 py-2 text-white bg-guardian-blue hover:bg-blue-700"
+        disabled={!allFilesUploaded || isValidating}
+        onClick={onStartValidation}
       >
-        <Upload className="h-4 w-4 mr-2" />
-        Upload
-      </TabsTrigger>
-      <TabsTrigger 
-        value="configure" 
-        className="flex items-center justify-center"
-        disabled={!canProceedFromUpload || isValidating}
-      >
-        <Cog className="h-4 w-4 mr-2" />
-        Configuração
-      </TabsTrigger>
-      <TabsTrigger 
-        value="validate" 
-        className="flex items-center justify-center"
-        disabled={!canProceedFromConfig || isValidating}
-      >
-        <CheckCircle className="h-4 w-4 mr-2" />
-        Validação
-      </TabsTrigger>
-    </TabsList>
+        {isValidating ? (
+          <div className="flex items-center">
+            <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-opacity-50 border-t-transparent rounded-full" />
+            Analisando...
+          </div>
+        ) : (
+          <div className="flex items-center">
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Iniciar Análise de Ofuscação
+          </div>
+        )}
+      </Button>
+    </div>
   );
 };
 
