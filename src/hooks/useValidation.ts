@@ -2,8 +2,14 @@
 import { useState } from 'react';
 import { TestConfig } from '@/components/TestConfigForm';
 import { TestResult } from '@/components/ValidationProgress';
-import { runValidation } from '@/lib/validationService';
+import { runValidation, compareJars } from '@/lib/validationService';
 import { useToast } from '@/components/ui/use-toast';
+
+export interface ValidationFiles {
+  originalJar?: File;
+  obfuscatedJar?: File;
+  mappingFile?: File;
+}
 
 export const useValidation = () => {
   const { toast } = useToast();
@@ -12,28 +18,36 @@ export const useValidation = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<TestResult[]>([]);
+  const [comparisonResults, setComparisonResults] = useState<{
+    differences: number;
+    matches: number;
+    unmappedClasses: string[];
+    decompileUrl?: string;
+  } | null>(null);
 
   const startValidation = async (
-    selectedFile: File | null,
+    files: ValidationFiles,
     testConfig: TestConfig | null
   ) => {
-    if (!selectedFile || !testConfig) return false;
+    if (!files.obfuscatedJar || !testConfig) return false;
     
     toast({
       title: "Análise iniciada",
-      description: "Iniciando análise estática do arquivo JAR.",
+      description: "Iniciando análise dos arquivos JAR.",
     });
     
     setIsValidating(true);
     setProgress(0);
     setCurrentStep(0);
     setResults([]);
+    setComparisonResults(null);
     
     try {
+      // Primeira etapa: análise estática básica
       await runValidation(
-        selectedFile,
+        files.obfuscatedJar,
         testConfig,
-        (p) => setProgress(p),
+        (p) => setProgress(p * 0.5), // 50% para a primeira etapa
         (step) => setCurrentStep(step),
         (result) => {
           setResults(prev => {
@@ -46,10 +60,44 @@ export const useValidation = () => {
         }
       );
       
+      // Segunda etapa: comparação de JARs (se disponível)
+      if (files.originalJar && files.obfuscatedJar) {
+        setCurrentStep(4); // Avançar para o próximo passo
+        
+        // Comparar os JARs e obter resultados
+        const comparison = await compareJars(
+          files.originalJar,
+          files.obfuscatedJar,
+          files.mappingFile,
+          (p) => setProgress(50 + p * 0.5) // 50-100% para a segunda etapa
+        );
+        
+        setComparisonResults(comparison);
+        
+        // Adicionar resultados de comparação
+        setResults(prev => [
+          ...prev,
+          {
+            id: 'jar-comparison',
+            name: 'Comparação de JARs',
+            status: 'success',
+            message: `Análise comparativa concluída: ${comparison.differences} diferenças encontradas entre os arquivos`
+          },
+          {
+            id: 'mapping-analysis',
+            name: 'Análise de mapeamento',
+            status: comparison.unmappedClasses.length > 0 ? 'warning' : 'success',
+            message: comparison.unmappedClasses.length > 0 
+              ? `${comparison.unmappedClasses.length} classes não mapeadas encontradas` 
+              : 'Todas as classes estão corretamente mapeadas'
+          }
+        ]);
+      }
+      
       setValidationComplete(true);
       toast({
         title: "Análise concluída",
-        description: "A análise estática do arquivo JAR foi finalizada.",
+        description: "A análise dos arquivos JAR foi finalizada.",
       });
       return true;
     } catch (error) {
@@ -70,6 +118,7 @@ export const useValidation = () => {
     setResults([]);
     setProgress(0);
     setCurrentStep(0);
+    setComparisonResults(null);
   };
 
   return {
@@ -78,6 +127,7 @@ export const useValidation = () => {
     currentStep,
     progress,
     results,
+    comparisonResults,
     startValidation,
     resetValidation
   };

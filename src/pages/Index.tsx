@@ -13,7 +13,7 @@ import ResultsSummary from '@/components/ResultsSummary';
 import ValidationTabs from '@/components/validation/ValidationTabs';
 import ValidationHeader from '@/components/validation/ValidationHeader';
 import ValidationTutorial from '@/components/validation/ValidationTutorial';
-import { useValidation } from '@/hooks/useValidation';
+import { useValidation, ValidationFiles } from '@/hooks/useValidation';
 import { 
   generateAndDownloadPDF, 
   downloadTextFile, 
@@ -23,7 +23,7 @@ import {
 const Index = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('upload');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<ValidationFiles>({});
   const [testConfig, setTestConfig] = useState<TestConfig | null>(null);
   
   const {
@@ -32,16 +32,21 @@ const Index = () => {
     currentStep,
     progress,
     results,
+    comparisonResults,
     startValidation,
     resetValidation
   } = useValidation();
   
-  const handleFileSelected = (file: File) => {
-    setSelectedFile(file);
-    toast({
-      title: "Arquivo selecionado",
-      description: `${file.name} foi carregado com sucesso.`,
-    });
+  const handleFilesSelected = (files: ValidationFiles) => {
+    setSelectedFiles(files);
+    
+    // Verificar se temos pelo menos o JAR ofuscado
+    if (files.obfuscatedJar) {
+      toast({
+        title: "Arquivo ofuscado carregado",
+        description: `${files.obfuscatedJar.name} foi carregado com sucesso.`,
+      });
+    }
   };
   
   const handleConfigChange = (config: TestConfig) => {
@@ -49,21 +54,22 @@ const Index = () => {
   };
   
   const handleNextTab = () => {
-    if (activeTab === 'upload' && selectedFile) {
+    if (activeTab === 'upload' && selectedFiles.obfuscatedJar) {
       setActiveTab('configure');
     } else if (activeTab === 'configure' && testConfig) {
       setActiveTab('validate');
-      startValidation(selectedFile, testConfig);
+      startValidation(selectedFiles, testConfig);
     }
   };
   
   const handleDownloadReport = () => {
-    if (!selectedFile) return;
+    if (!selectedFiles.obfuscatedJar) return;
+    
     generateAndDownloadPDF(
       results, 
       testConfig!, 
-      selectedFile.name, 
-      selectedFile.size
+      selectedFiles.obfuscatedJar.name, 
+      selectedFiles.obfuscatedJar.size
     );
     
     toast({
@@ -84,8 +90,8 @@ const Index = () => {
   };
   
   const handleDownloadCertificate = () => {
-    if (!selectedFile) return;
-    generateAndDownloadCertificate(results, selectedFile.name);
+    if (!selectedFiles.obfuscatedJar) return;
+    generateAndDownloadCertificate(results, selectedFiles.obfuscatedJar.name);
     
     toast({
       title: "Certificado baixado",
@@ -94,13 +100,13 @@ const Index = () => {
   };
 
   const handleStartNewValidation = () => {
-    setSelectedFile(null);
+    setSelectedFiles({});
     setTestConfig(null);
     resetValidation();
     setActiveTab('upload');
   };
 
-  const canProceedFromUpload = !!selectedFile;
+  const canProceedFromUpload = !!selectedFiles.obfuscatedJar;
   const canProceedFromConfig = !!testConfig;
   
   // Helper function to generate a text report
@@ -132,13 +138,25 @@ Data: ${dateStr} - ${timeStr}
       report += `Detalhes: ${result.message}\n`;
     });
     
-    report += `\n## Recomendações para análise avançada\n`;
+    if (comparisonResults) {
+      report += `\n## Resultados da comparação\n`;
+      report += `- Diferenças encontradas: ${comparisonResults.differences}\n`;
+      report += `- Correspondências: ${comparisonResults.matches}\n`;
+      report += `- Classes não mapeadas: ${comparisonResults.unmappedClasses.length}\n`;
+      
+      if (comparisonResults.unmappedClasses.length > 0) {
+        report += "\nClasses não mapeadas:\n";
+        comparisonResults.unmappedClasses.forEach(className => {
+          report += `- ${className}\n`;
+        });
+      }
+    }
+    
+    report += `\n## Ferramentas recomendadas para ofuscação\n`;
     report += `
-Para realizar uma análise completa da obfuscação, recomendamos a utilização de ferramentas especializadas como:
-- ProGuard, YGuard ou Allatori para obfuscação
-- CFR, Fernflower ou Procyon para análise de descompilação
-- BytecodeViewer para análise de bytecode
-- SonarQube para análise de qualidade e segurança`;
+Para realizar ofuscação eficiente de código Java, recomendamos:
+- ProGuard: Ferramenta gratuita e de código aberto para ofuscação, otimização e redução de código Java
+- YGuard: Ferramenta gratuita com suporte para ofuscação de nomes e criptografia de strings`;
     
     return report;
   };
@@ -155,7 +173,7 @@ Para realizar uma análise completa da obfuscação, recomendamos a utilização
               <CardTitle>Code Guardian - Validação Hub</CardTitle>
             </div>
             <CardDescription>
-              Análise estática de aplicações Java obfuscadas e recomendações de ferramentas.
+              Análise e comparação de aplicações Java ofuscadas usando decompilação e mapeamento.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -169,12 +187,12 @@ Para realizar uma análise completa da obfuscação, recomendamos a utilização
               
               <TabsContent value="upload" className="space-y-6">
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Carregue seu arquivo JAR</h3>
+                  <h3 className="text-lg font-medium">Carregue seus arquivos JAR</h3>
                   <p className="text-gray-600">
-                    Selecione o arquivo JAR (.jar) obfuscado para análise estática.
-                    Esta análise verificará o arquivo e fornecerá recomendações para análise avançada.
+                    Para análise completa, carregue o JAR original, o JAR ofuscado e o arquivo mapping.txt
+                    gerado pelo ProGuard. A análise será mais precisa com todos os arquivos.
                   </p>
-                  <FileUploader onFileSelected={handleFileSelected} />
+                  <FileUploader onFilesSelected={handleFilesSelected} />
                 </div>
               </TabsContent>
               
@@ -183,7 +201,7 @@ Para realizar uma análise completa da obfuscação, recomendamos a utilização
                   <h3 className="text-lg font-medium">Configure a análise</h3>
                   <p className="text-gray-600">
                     Selecione quais aspectos da obfuscação você deseja analisar.
-                    A análise fornecerá recomendações sobre como verificar estes aspectos com ferramentas especializadas.
+                    A análise fornecerá informações detalhadas sobre as técnicas de ofuscação detectadas.
                   </p>
                   <TestConfigForm onConfigChange={handleConfigChange} />
                 </div>
@@ -198,6 +216,7 @@ Para realizar uma análise completa da obfuscação, recomendamos a utilização
                       progress={progress}
                       results={results}
                       isComplete={validationComplete}
+                      comparisonResults={comparisonResults}
                     />
                   </div>
                   
@@ -207,8 +226,8 @@ Para realizar uma análise completa da obfuscação, recomendamos a utilização
                       <ResultsSummary 
                         results={results}
                         config={testConfig!}
-                        fileName={selectedFile?.name || "arquivo.jar"}
-                        fileSize={selectedFile?.size || 0}
+                        fileName={selectedFiles.obfuscatedJar?.name || "arquivo.jar"}
+                        fileSize={selectedFiles.obfuscatedJar?.size || 0}
                         onDownloadReport={handleDownloadReport}
                         onDownloadCertificate={handleDownloadCertificate}
                       />

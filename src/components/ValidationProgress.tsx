@@ -3,6 +3,8 @@ import React from 'react';
 import { CheckCircle, XCircle, AlertCircle, Clock, Info } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ExternalLink } from 'lucide-react';
 
 export type ValidationStatus = 'waiting' | 'running' | 'success' | 'failed' | 'warning';
 
@@ -18,13 +20,20 @@ interface ValidationProgressProps {
   progress: number;
   results: TestResult[];
   isComplete: boolean;
+  comparisonResults?: {
+    differences: number;
+    matches: number;
+    unmappedClasses: string[];
+    decompileUrl?: string;
+  } | null;
 }
 
 const ValidationProgress: React.FC<ValidationProgressProps> = ({
   currentStep,
   progress,
   results,
-  isComplete
+  isComplete,
+  comparisonResults
 }) => {
   const getStatusIcon = (status: ValidationStatus) => {
     switch (status) {
@@ -62,6 +71,7 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({
     { label: 'Análise estática', description: 'Verificando obfuscação' },
     { label: 'Recomendações', description: 'Ferramentas para análise' },
     { label: 'Finalização', description: 'Gerando relatório' },
+    { label: 'Comparação', description: 'Comparando JARs' }
   ];
 
   return (
@@ -72,9 +82,9 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({
             <Info className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
             <div>
               <p className="text-sm text-blue-800">
-                <strong>Análise estática:</strong> Esta aplicação realiza uma validação básica do arquivo JAR e fornece 
-                orientações sobre como realizar análises mais profundas usando ferramentas dedicadas para engenharia 
-                reversa e análise de obfuscação Java.
+                <strong>Análise de JARs:</strong> Esta aplicação realiza uma análise dos arquivos JAR 
+                e oferece serviços de descompilação para comparação de código original e ofuscado.
+                Utilize o arquivo mapping.txt gerado pelo ProGuard para melhorar os resultados da análise.
               </p>
             </div>
           </div>
@@ -153,6 +163,75 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({
           </div>
         )}
       </div>
+
+      {/* Comparison Results */}
+      {comparisonResults && (
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg">Resultados da comparação de JARs</h3>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="bg-blue-50 p-4 rounded-lg text-center">
+                  <p className="text-sm text-blue-600">Diferenças encontradas</p>
+                  <p className="text-2xl font-bold text-blue-800">{comparisonResults.differences}</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg text-center">
+                  <p className="text-sm text-green-600">Correspondências</p>
+                  <p className="text-2xl font-bold text-green-800">{comparisonResults.matches}</p>
+                </div>
+                <div className="bg-yellow-50 p-4 rounded-lg text-center">
+                  <p className="text-sm text-yellow-600">Classes não mapeadas</p>
+                  <p className="text-2xl font-bold text-yellow-800">{comparisonResults.unmappedClasses.length}</p>
+                </div>
+              </div>
+
+              {comparisonResults.unmappedClasses.length > 0 && (
+                <div className="mb-6">
+                  <p className="font-medium mb-2">Classes não mapeadas:</p>
+                  <div className="bg-gray-50 p-3 rounded border text-sm font-mono overflow-auto max-h-32">
+                    {comparisonResults.unmappedClasses.map((className, idx) => (
+                      <div key={idx} className="py-1">{className}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {comparisonResults.decompileUrl && (
+                <div className="mt-4">
+                  <p className="mb-2 font-medium">Descompilação online:</p>
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center"
+                    onClick={() => window.open(comparisonResults.decompileUrl, '_blank')}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Abrir serviço de descompilação
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Utilize o serviço online para carregar os arquivos JAR e comparar o código descompilado.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {isComplete && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-start">
+              <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
+              <div>
+                <p className="text-sm text-green-800">
+                  <strong>Análise concluída!</strong> Para uma análise mais completa, utilize
+                  o serviço de descompilação para comparar visualmente o código original e ofuscado.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
