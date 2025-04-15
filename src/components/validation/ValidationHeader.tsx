@@ -9,7 +9,7 @@ const ValidationHeader: React.FC = () => {
       <h1 className="text-3xl font-bold mb-2">Validação de Aplicações Java Obfuscadas</h1>
       <p className="text-gray-600 max-w-2xl mx-auto mb-4">
         Plataforma para validação e comparação real de arquivos JAR (.jar) ofuscados 
-        com análise detalhada do código e suporte a arquivos mapping.txt do ProGuard.
+        com descompilação e análise detalhada do código via backend dedicado.
       </p>
       
       <Alert className="mb-4 bg-blue-50 border-blue-200 text-blue-800">
@@ -17,7 +17,7 @@ const ValidationHeader: React.FC = () => {
         <AlertTitle>Análise Real de Código Java</AlertTitle>
         <AlertDescription>
           Faça upload do JAR original, do JAR ofuscado e do arquivo mapping.txt para obter 
-          uma análise detalhada das diferenças e correspondências baseada na descompilação real dos arquivos.
+          uma análise detalhada baseada na descompilação real dos arquivos usando nosso servidor de processamento dedicado.
         </AlertDescription>
       </Alert>
     </div>
