@@ -22,6 +22,12 @@ export const useValidation = () => {
     differences: number;
     matches: number;
     unmappedClasses: string[];
+    diffDetails?: Array<{
+      className: string;
+      type: string;
+      original?: string;
+      obfuscated?: string;
+    }>;
     decompileUrl?: string;
   } | null>(null);
 
@@ -33,7 +39,7 @@ export const useValidation = () => {
     
     toast({
       title: "Análise iniciada",
-      description: "Iniciando análise dos arquivos JAR.",
+      description: "Iniciando análise detalhada dos arquivos JAR.",
     });
     
     setIsValidating(true);
@@ -97,14 +103,14 @@ export const useValidation = () => {
       setValidationComplete(true);
       toast({
         title: "Análise concluída",
-        description: "A análise dos arquivos JAR foi finalizada.",
+        description: "A análise comparativa dos arquivos JAR foi finalizada com sucesso.",
       });
       return true;
     } catch (error) {
       console.error("Erro na análise:", error);
       toast({
         title: "Erro na análise",
-        description: "Ocorreu um erro durante o processo de análise.",
+        description: "Ocorreu um erro durante o processo de análise dos arquivos.",
         variant: "destructive",
       });
       return false;

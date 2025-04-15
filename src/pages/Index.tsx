@@ -182,13 +182,19 @@ Data: ${dateStr} - ${timeStr}
           report += `- ${className}\n`;
         });
       }
+      
+      if (comparisonResults.diffDetails && comparisonResults.diffDetails.length > 0) {
+        report += "\n## Detalhamento das diferenças\n";
+        comparisonResults.diffDetails.forEach((diff, index) => {
+          report += `${index + 1}. ${diff.className} - ${diff.type}\n`;
+          if (diff.original && diff.obfuscated) {
+            report += `   Original: ${diff.original}\n`;
+            report += `   Ofuscado: ${diff.obfuscated}\n`;
+          }
+          report += "\n";
+        });
+      }
     }
-    
-    report += `\n## Ferramentas recomendadas para ofuscação\n`;
-    report += `
-Para realizar ofuscação eficiente de código Java, recomendamos:
-- ProGuard: Ferramenta gratuita e de código aberto para ofuscação, otimização e redução de código Java
-- YGuard: Ferramenta gratuita com suporte para ofuscação de nomes e criptografia de strings`;
     
     return report;
   };
@@ -258,6 +264,7 @@ Para realizar ofuscação eficiente de código Java, recomendamos:
                       }}
                       fileName={selectedFiles.obfuscatedJar?.name || "arquivo.jar"}
                       fileSize={selectedFiles.obfuscatedJar?.size || 0}
+                      comparisonResults={comparisonResults}
                       onDownloadReport={handleDownloadReport}
                       onDownloadCertificate={handleDownloadCertificate}
                     />

@@ -13,6 +13,18 @@ interface ResultsSummaryProps {
   config: TestConfig;
   fileName: string;
   fileSize: number;
+  comparisonResults: {
+    differences: number;
+    matches: number;
+    unmappedClasses: string[];
+    diffDetails?: Array<{
+      className: string;
+      type: string;
+      original?: string;
+      obfuscated?: string;
+    }>;
+    decompileUrl?: string;
+  } | null;
   onDownloadReport: () => void;
   onDownloadCertificate: () => void;
 }
@@ -22,6 +34,7 @@ const ResultsSummaryCard: React.FC<ResultsSummaryProps> = ({
   config,
   fileName,
   fileSize,
+  comparisonResults,
   onDownloadReport,
   onDownloadCertificate
 }) => {
@@ -129,16 +142,51 @@ const ResultsSummaryCard: React.FC<ResultsSummaryProps> = ({
           </div>
         </div>
 
-        <div className="space-y-4">
-          <h3 className="font-medium">Ferramentas recomendadas para obfuscação</h3>
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-md text-blue-800">
-            <ul className="list-disc pl-5 space-y-2">
-              <li><strong>ProGuard</strong> - Ferramenta gratuita e de código aberto para obfuscação, otimização e redução de código Java.</li>
-              <li><strong>YGuard</strong> - Ferramenta de obfuscação gratuita para projetos Java com suporte a obfuscação de nomes e criptografia de strings.</li>
-              <li><strong>Allatori</strong> - Versão gratuita disponível com recursos básicos de obfuscação para projetos pequenos.</li>
-            </ul>
+        {comparisonResults && (
+          <div className="space-y-4 mb-6">
+            <h3 className="font-medium">Detalhes da comparação</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="text-lg font-semibold text-blue-700 mb-1">Diferenças encontradas</div>
+                <div className="text-3xl font-bold text-blue-800">{comparisonResults.differences}</div>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="text-lg font-semibold text-green-700 mb-1">Correspondências</div>
+                <div className="text-3xl font-bold text-green-800">{comparisonResults.matches}</div>
+              </div>
+            </div>
+            
+            {comparisonResults.diffDetails && comparisonResults.diffDetails.length > 0 && (
+              <div className="bg-white border rounded-lg p-4 overflow-hidden">
+                <h4 className="font-medium mb-2">Detalhamento das diferenças:</h4>
+                <div className="max-h-80 overflow-y-auto">
+                  {comparisonResults.diffDetails.slice(0, 50).map((diff, idx) => (
+                    <div key={idx} className="p-2 border-b last:border-0">
+                      <div className="font-mono text-sm mb-1">{diff.className}</div>
+                      <div className="flex text-sm">
+                        <span className="font-semibold min-w-24">{diff.type}:</span>
+                        <span className="text-gray-700">
+                          {diff.original && diff.obfuscated ? (
+                            <>
+                              <span className="text-red-600">{diff.original}</span> → <span className="text-green-600">{diff.obfuscated}</span>
+                            </>
+                          ) : (
+                            'Informação não disponível'
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {comparisonResults.diffDetails.length > 50 && (
+                    <div className="p-2 text-center text-gray-500 text-sm">
+                      + {comparisonResults.diffDetails.length - 50} mais diferenças (disponíveis no relatório completo)
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         <div className="space-y-2 mt-6">
           <h3 className="font-medium">Detalhes da análise</h3>

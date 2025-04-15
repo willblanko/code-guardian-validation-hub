@@ -24,6 +24,12 @@ interface ValidationProgressProps {
     differences: number;
     matches: number;
     unmappedClasses: string[];
+    diffDetails?: Array<{
+      className: string;
+      type: string;
+      original?: string;
+      obfuscated?: string;
+    }>;
     decompileUrl?: string;
   } | null;
 }
@@ -82,9 +88,9 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({
             <Info className="h-5 w-5 text-blue-500 mr-2 mt-0.5" />
             <div>
               <p className="text-sm text-blue-800">
-                <strong>Análise de JARs:</strong> Esta aplicação realiza uma análise dos arquivos JAR 
-                e oferece serviços de descompilação para comparação de código original e ofuscado.
-                Utilize o arquivo mapping.txt gerado pelo ProGuard para melhorar os resultados da análise.
+                <strong>Análise de JARs:</strong> Esta aplicação realiza uma análise detalhada dos arquivos JAR 
+                e compara o código original com o ofuscado para validar a qualidade da ofuscação.
+                O arquivo mapping.txt é essencial para uma análise precisa.
               </p>
             </div>
           </div>
@@ -164,59 +170,6 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({
         )}
       </div>
 
-      {/* Comparison Results */}
-      {comparisonResults && (
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg">Resultados da comparação de JARs</h3>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <p className="text-sm text-blue-600">Diferenças encontradas</p>
-                  <p className="text-2xl font-bold text-blue-800">{comparisonResults.differences}</p>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg text-center">
-                  <p className="text-sm text-green-600">Correspondências</p>
-                  <p className="text-2xl font-bold text-green-800">{comparisonResults.matches}</p>
-                </div>
-                <div className="bg-yellow-50 p-4 rounded-lg text-center">
-                  <p className="text-sm text-yellow-600">Classes não mapeadas</p>
-                  <p className="text-2xl font-bold text-yellow-800">{comparisonResults.unmappedClasses.length}</p>
-                </div>
-              </div>
-
-              {comparisonResults.unmappedClasses.length > 0 && (
-                <div className="mb-6">
-                  <p className="font-medium mb-2">Classes não mapeadas:</p>
-                  <div className="bg-gray-50 p-3 rounded border text-sm font-mono overflow-auto max-h-32">
-                    {comparisonResults.unmappedClasses.map((className, idx) => (
-                      <div key={idx} className="py-1">{className}</div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {comparisonResults.decompileUrl && (
-                <div className="mt-4">
-                  <p className="mb-2 font-medium">Descompilação online:</p>
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center"
-                    onClick={() => window.open(comparisonResults.decompileUrl, '_blank')}
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Abrir serviço de descompilação
-                  </Button>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Utilize o serviço online para carregar os arquivos JAR e comparar o código descompilado.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       {isComplete && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="pt-4 pb-4">
@@ -224,8 +177,8 @@ const ValidationProgress: React.FC<ValidationProgressProps> = ({
               <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
               <div>
                 <p className="text-sm text-green-800">
-                  <strong>Análise concluída!</strong> Para uma análise mais completa, utilize
-                  o serviço de descompilação para comparar visualmente o código original e ofuscado.
+                  <strong>Análise concluída!</strong> Os resultados detalhados da comparação estão 
+                  disponíveis no relatório. Veja o detalhamento completo abaixo.
                 </p>
               </div>
             </div>
